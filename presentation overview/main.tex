@@ -1,0 +1,137 @@
+
+\usepackage[utf8x]{inputenc}
+\usepackage{ucs}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{multicol}
+\usepackage{graphicx}
+%\usepackage{hyperref}		% automatic included by beamer
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning,shapes}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{appendixnumberbeamer}
+\usepackage{pstricks}
+\usepackage{marvosym}
+
+\title{perf}
+%\subtitle{}
+\author{Urs F\"assler}
+\date{14.07.2011}
+\institute
+{
+  CERN Openlab
+}
+%\subject{}
+
+\lstset
+{  
+  basicstyle=\small\ttfamily,
+  language=,
+  morekeywords={interface,function,query,String,Integer,Boolean,component,import,input,output,implementation,connection,elementary,hfsm,state,initial,entry,exit,var,do,end,true,false,return,transition,to,by,if,ef, then,else},
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+%  numbers=left,
+  numberstyle={\color{Grey}},
+  keywordstyle={\bfseries\color{DarkRed}},
+%  identifierstyle={\color{Blue}},
+%  columns=flexible,
+  float=tb,
+  frame=single,
+  escapeinside={@}{@},
+  breaklines=true, % sets automatic line breaking
+  breakatwhitespace=false % automatic breaks happen at whitespace
+}
+
+\bibliographystyle{plain}
+
+\usetheme{Madrid}
+\beamertemplatenavigationsymbolsempty
+
+\begin{document}
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\setcounter{framenumber}{0}
+
+\begin{frame}{architecture (1)}
+\centering{
+  \include{res/overview}}
+\end{frame}
+
+\begin{frame}{architecture (2)}
+\begin{description}
+  \item[perf] profiler tool for Linux
+  \item[perf\_events] Linux kernel Interface
+  \item[libpfm4] helper library to map event names to event encoding
+  \item[pfmon, perfmon] predecessor, development stopped\only<handout>{\cite{pfmon2007}}
+\end{description}
+\end{frame}
+
+What are the limitations of the tools/components? 
+
+\begin{frame}{perf\_events\only<handout>{\cite{kernel.org2011,Eranian2010}}}
+\begin{itemize}
+  \item abstraction of hardware
+  \item based on file descriptors
+  \item hardware events (performance counters, ...)
+  \item software events (kernel)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{perf tool\only<handout>{\cite{Eranian2010}}}
+\begin{itemize}
+  \item included in kernel source tree (tools/perf)
+  \item support for per-thread, per-cpu counting, sampling, tracing
+  \begin{itemize}
+    \item cmdline tool, curses-based gui
+    \item operate like git: perf command arguments
+  \end{itemize}
+  \item profiling support similar to Oprofile
+  \begin{itemize}
+    \item collection $\Rightarrow$ perf record $\Rightarrow$ binary output file
+    \item high level analysis $\Rightarrow$ perf report
+    \item source level analysis $\Rightarrow$ perf annotate
+    \item remote collect, local analysis possible
+  \end{itemize}
+  \item top-like mode $\Rightarrow$ perf top
+\end{itemize}
+\end{frame}
+
+\begin{frame}{collection capabilities}
+I would like you to discuss the technical details surrounding:
+\begin{itemize}
+  \item what can be collected?
+  \item How is it done?
+  \item Is the data accurate?
+  \item To what extent?
+\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{storing and presentation}
+data storing and presentation capabilities (  Text output? Graphics? )
+\begin{itemize}
+  \item in which way is the collected data stored?
+  \item How is it presented? (Text output? Graphics?)
+  \item Etc + examples
+\end{itemize}
+\end{frame}
+
+\begin{frame}{analysis capabilities}
+in which ways can we look at the data and how are those ways relevant or useful for software or hardware benchmarking
+\end{frame}
+
+\begin{frame}{more information}
+\begin{itemize}
+  \item Homepage of Vince Weaver: perf\_events, accuracy and more\only<handout>{\cite{Weaver2011}}
+    \url{http://web.eecs.utk.edu/~vweaver1/}
+\end{itemize}
+\end{frame}
+
+\include{appendix}
+
+\end{document}
