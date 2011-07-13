@@ -15,6 +15,8 @@
 \usepackage{pstricks}
 \usepackage{marvosym}
 
+\newcommand{\code}[1]{\texttt{#1}}
+
 \title{perf}
 %\subtitle{}
 \author{Urs F\"assler}
@@ -29,17 +31,12 @@
 {  
   basicstyle=\small\ttfamily,
   language=,
-  morekeywords={interface,function,query,String,Integer,Boolean,component,import,input,output,implementation,connection,elementary,hfsm,state,initial,entry,exit,var,do,end,true,false,return,transition,to,by,if,ef, then,else},
-  comment=[l]{//},
-  morecomment=[s]{/*}{*/},
 %  numbers=left,
   numberstyle={\color{Grey}},
-  keywordstyle={\bfseries\color{DarkRed}},
 %  identifierstyle={\color{Blue}},
 %  columns=flexible,
   float=tb,
   frame=single,
-  escapeinside={@}{@},
   breaklines=true, % sets automatic line breaking
   breakatwhitespace=false % automatic breaks happen at whitespace
 }
@@ -66,7 +63,7 @@
   \item[perf] profiler tool for Linux
   \item[perf\_events] Linux kernel Interface
   \item[libpfm4] helper library to map event names to event encoding
-  \item[pfmon, perfmon] predecessor, development stopped\only<handout>{\cite{pfmon2007}}
+  \item[pfmon, perfmon] predecessor of perf / perf\_events , development stopped\only<handout>{\cite{pfmon2007}}
 \end{description}
 \end{frame}
 
@@ -74,21 +71,30 @@ What are the limitations of the tools/components?
 
 \begin{frame}{perf\_events\only<handout>{\cite{kernel.org2011,Eranian2010}}}
 \begin{itemize}
+  \item the Linux kernel interface
   \item abstraction of hardware
+  \begin{itemize}
+    \item mimic Intel architected PMU\only<handout>{\footnote{Performance Monitoring Unit}}
+  \end{itemize}
   \item based on file descriptors
+  \begin{itemize}
+    \item \code{perf\_event\_open}, \code{read}, \code{close}, \code{ioctl}
+  \end{itemize}
   \item hardware events (performance counters, ...)
-  \item software events (kernel)
+  \item software events, e.g.:
+  \begin{itemize}
+    \item page faults
+    \item context switches
+  \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}{perf tool\only<handout>{\cite{Eranian2010}}}
 \begin{itemize}
+  \item cmdline tool, curses-based gui
+  \item top-like mode $\Rightarrow$ perf top
   \item included in kernel source tree (tools/perf)
   \item support for per-thread, per-cpu counting, sampling, tracing
-  \begin{itemize}
-    \item cmdline tool, curses-based gui
-    \item operate like git: perf command arguments
-  \end{itemize}
   \item profiling support similar to Oprofile
   \begin{itemize}
     \item collection $\Rightarrow$ perf record $\Rightarrow$ binary output file
@@ -96,9 +102,55 @@ What are the limitations of the tools/components?
     \item source level analysis $\Rightarrow$ perf annotate
     \item remote collect, local analysis possible
   \end{itemize}
-  \item top-like mode $\Rightarrow$ perf top
 \end{itemize}
 \end{frame}
+
+\begin{frame}{perf events}
+\begin{itemize}
+  \item software events
+  \begin{itemize}
+    \item pure kernel counters, e.g.: context-switches, minor-fault
+  \end{itemize}
+  \item hardware events
+  \begin{itemize}
+    \item PMU, depending on hardware, e.g.: number of cycles, instructions retired
+  \end{itemize}
+  \item tracepoint events
+  \begin{itemize}
+    \item based on ftrace\only<handout>{\footnote{tracing utility built directly into the Linux kernel}} infrastructure
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{event multiplexing}
+\begin{itemize}
+  \item problem: PMU only have a small number of counters
+  \item solution: time multiplexing
+  \item[$\Rightarrow$] an event is not measured all the time and scaled at the end
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\code{perf stat}}
+\begin{itemize}
+  \item aggregated counter statistics
+  \item options for human readable output
+  \item options for machine readable output
+  \item event filtering
+\end{itemize}
+\begin{lstlisting}[basicstyle=\tiny\ttfamily]
+perf stat -e cycles,instructions,context-switches,L1-dcache-load-misses -B dd if=/dev/urandom of=/dev/null  count=10000
+
+ Performance counter stats for 'dd if=/dev/urandom of=/dev/null count=10000':
+
+        1879949533 cycles                  
+        4267794459 instructions             #      2.270 IPC  
+               126 context-switches        
+             42895 L1-dcache-load-misses   
+
+        0.949068666  seconds time elapsed
+\end{lstlisting}
+\end{frame}
+
 
 \begin{frame}{collection capabilities}
 I would like you to discuss the technical details surrounding:
