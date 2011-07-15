@@ -2,7 +2,7 @@
 handname=handout
 slidename=slides
 bibname=literature
-pdfprexif=rizzly_
+pdfprexif=perf_
 
 quick: handout slide pdfclean
 	evince $(pdfprexif)$(handname).pdf &

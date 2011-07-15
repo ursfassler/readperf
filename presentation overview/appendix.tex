@@ -1,10 +1,95 @@
 \appendix
 \section{Appendix}
 
+\begin{frame}{more information}
+\pagenumbering{roman}
+\begin{itemize}
+  \item Homepage of Vince Weaver: perf\_events, accuracy and more\only<handout>{\cite{Weaver2011}}
+    \url{http://web.eecs.utk.edu/~vweaver1/}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{events}
+\begin{tiny}
+\begin{multicols}{3}
+Hardware event
+\begin{itemize}
+  \item cpu-cycles
+  \item instructions
+  \item cache-references
+  \item cache-misses
+  \item branch-instructions
+  \item branch-misses
+  \item bus-cycles
+\end{itemize}
+Software event
+\begin{itemize}
+  \item cpu-clock
+  \item task-clock
+  \item page-faults
+  \item minor-faults
+  \item major-faults
+  \item context-switches
+  \item cpu-migrations
+  \item alignment-faults
+  \item emulation-faults
+\end{itemize}
+Hardware cache event
+\begin{itemize}
+  \item L1-dcache-loads
+  \item L1-dcache-load-misses
+  \item L1-dcache-stores
+  \item L1-dcache-store-misses
+  \item L1-dcache-prefetches
+  \item L1-dcache-prefetch-misses
+  \item L1-icache-loads
+  \item L1-icache-load-misses
+  \item L1-icache-prefetches
+  \item L1-icache-prefetch-misses
+  \item LLC-loads
+  \item LLC-load-misses
+  \item LLC-stores
+  \item LLC-store-misses
+  \item LLC-prefetches
+  \item LLC-prefetch-misses
+  \item dTLB-loads
+  \item dTLB-load-misses
+  \item dTLB-stores
+  \item dTLB-store-misses
+  \item dTLB-prefetches
+  \item dTLB-prefetch-misses
+  \item iTLB-loads
+  \item iTLB-load-misses
+  \item branch-loads
+  \item branch-load-misses
+\end{itemize}
+Hardware breakpoint
+\begin{itemize}
+  \item mem:$<$addr$>$[:access]
+\end{itemize}
+Tracepoint event
+\begin{itemize}
+  \item i915:i915*
+  \item drm:drm*
+  \item ext4:ext4*
+  \item block:*
+  \item kmem:*
+  \item power:*
+  \item module:*
+  \item signal:*
+  \item timer:*
+  \item irq:*
+  \item sched:*
+  \item ...
+\end{itemize}
+\end{multicols}
+\end{tiny}
+\end{frame}
+
 \only<handout>{
 \begin{frame}{literature}
 \begin{scriptsize}
-  \bibliography{../../report/literature}
+  \printbibliography
 \end{scriptsize}
 \end{frame}
 }
