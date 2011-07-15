@@ -56,7 +56,7 @@
 \setcounter{framenumber}{0}
 
 \begin{frame}{architecture\only<handout>{ (1)}}
-\centering{
+\begin{center}
 \begin{tikzpicture}[scale=1,transform shape]
 \tikzstyle{size}=[minimum width=2 cm, minimum height=1 cm,anchor=center]
 
@@ -65,30 +65,29 @@
 \tikzstyle{label}=[size,rectangle,text centered]
 
 \node [module,minimum width=10 cm,minimum height=2.5 cm] at (0,0.5) (cpu)  {};
-\node [label] at (0,1) (cpuLabel) {CPU};
+\node [label] at (0,1) (cpuLabel) {CPU\only<handout>{\footnote{detailed list: \url{http://web.eecs.utk.edu/~vweaver1/projects/perf-events/support.html}}} with PMU};
 \node [module] at (-3,0) (intel)  {Intel};
 \node [module] at (0,0) (amd) {AMD};
-\node [module] at (3,0) (arm) {ARM, MIPS, ... 
-\only<handout>{\footnote{detailed  \url{http://web.eecs.utk.edu/~vweaver1/projects/perf-events/support.html}}}
-};
+\node [module] at (3,0) (arm) {ARM, MIPS, ... };
 
 \uncover<2->{
-  \node [module,minimum width=10 cm,minimum height=2 cm] at (0,3) (linux)  {Linux 2.6+};
-  \node [interface,minimum width=6 cm] at (0,4) (perf)  {perf\_events};
+  \node [module,minimum width=10 cm,minimum height=1 cm] at (0,2.5) (linux)  {Linux 2.6+};
+  \node [interface,minimum width=5 cm] at (0.5,3) (perf)  {perf\_events};
 }
 
 \uncover<3->{
-  \node [module] at (-4.5,5) (libpfm4)  {libpfm4};
-  \node [module] at (-1.5,5) (perf)  {perf};
+  \node [module] at (-3.5,3.75) (libpfm4)  {libpfm4};
+  \node [module,minimum width=3 cm] at (-1.5,5) (perf)  {perf};
 }
 \uncover<4->{
-  \node [module] at (1.5,5) (user)  {\textit{user tool}};
+  \node [module] at (1.5,4) (user)  {\textit{user tool}};
 }
 \uncover<5->{
-  \node [size,rectangle,rounded corners,draw,thick,fill=gray!50] at (4.5,5) (pfmon)  {pfmon \Cross};
+  \node [size,rectangle,rounded corners,draw,thick,fill=gray!50] at (4.5,4) (pfmon)  {pfmon \Cross};
 }
 \end{tikzpicture}
-}
+\end{center}
+
 \end{frame}
 
 \only<handout>{
@@ -96,8 +95,15 @@
 \begin{description}
   \item[perf] profiler tool for Linux
   \item[perf\_events] Linux kernel Interface
-  \item[libpfm4] helper library to map event names to event encoding
+  \item[libpfm4] helper library to map event\only<handout>{\footnote{an event is raised if something happens in the CPU, e.g. an instructions is executed or an branch is mispredicted}} names to event encoding
   \item[pfmon, perfmon] predecessor of perf / perf\_events , development stopped\only<handout>{\cite{pfmon2007}}
+  \item[PMU] Performance Monitoring Unit, also known as Hardware Performance Counters (HPCs)\only<handout>{\cite{Azimi2009}}
+  \begin{itemize}
+    \item CPU registers, no overhead
+    \item if configured, count performance in the CPU automatically
+    \item can generate an interrupt on overflow
+    \item can be read by software
+  \end{itemize}
 \end{description}
 \end{frame}
 }
@@ -107,7 +113,7 @@
   \item the Linux kernel interface
   \item abstraction of hardware
   \begin{itemize}
-    \item mimic Intel architected PMU\only<handout>{\footnote{Performance Monitoring Unit}}
+    \item mimic Intel architected PMU
   \end{itemize}
   \pause
   \item based on file descriptors
@@ -134,10 +140,14 @@
     \item collection $\Rightarrow$ perf record $\Rightarrow$ binary output file
     \item high level analysis $\Rightarrow$ perf report
     \item source level analysis $\Rightarrow$ perf annotate
-    \item remote collect, local analysis possible
+    \item remote collect\only<handout>{\footnote{Collect data on an remote machine and analyze datafile locally}}, local analysis possible
   \end{itemize}
 }
 \end{itemize}
+\pause
+\begin{center}
+  \includegraphics[width=11cm]{res/perfgui}
+\end{center}
 \end{frame}
 
 \begin{frame}{perf events}
@@ -163,7 +173,7 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}{event multiplexing}
+\begin{frame}[fragile]{event multiplexing\only<handout>{\cite{kernel.org2011}}}
 \begin{itemize}
 \uncover<1->{
   \item problem: PMU only have a small number of counters
@@ -171,8 +181,22 @@
 \uncover<2->{
   \item solution: time multiplexing
   \item[$\Rightarrow$] an event is not measured all the time and scaled at the end
+  \item scaling: $final\_count = raw\_count \frac{time\_enabled}{time\_running}$
 }
 \end{itemize}
+\pause
+\begin{lstlisting}[basicstyle=\tiny\ttfamily]
+perf stat -B -e cycles,cycles,cycles ./noploop 1
+
+ Performance counter stats for './noploop 1':
+
+    2,809,946,289 cycles                    (scaled from 74.98%)
+    2,809,725,593 cycles                    (scaled from 74.98%)
+    2,810,797,044 cycles                    (scaled from 74.97%)
+    2,809,315,647 cycles                    (scaled from 75.09%)
+
+       1.295007067  seconds time elapsed
+\end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]{\code{perf stat}}
@@ -224,7 +248,7 @@ perf record -g -- ./test
     \item stdio print
     \item raw
   \end{itemize}
-  \item annotate source code\only<handout>{\footnote{with \code{perf annotate -l}}}
+\pause
   \item filters 
   \begin{itemize}
     \item threads
@@ -232,6 +256,7 @@ perf record -g -- ./test
     \item shared object
   \end{itemize}
 \end{itemize}
+\pause
 \begin{lstlisting}[basicstyle=\tiny\ttfamily]
 Events: 144  cycles                                                    
 +     71.21%         test  test               [.] recFib              
@@ -242,6 +267,16 @@ Events: 144  cycles
                                                                       
 Press '?' for help on key bindings                                     
 \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{\code{perf annotate -l}}
+\begin{itemize}
+  \item annotate source code
+  \item data from \code{perf record}
+\end{itemize}
+\begin{center}
+  \includegraphics[width=11cm]{res/perfannotate}
+\end{center}
 \end{frame}
 
 \begin{frame}{\code{perf timechart}}
@@ -301,7 +336,10 @@ Press '?' for help on key bindings
   \begin{itemize}
     \item looks like \textbf{the} (new) way for performance monitoring in Linux
     \item probably stable interface through hardware abstraction
-    \item also more or less hardware independent
+    \item behavior of PMU are Manufacture specific
+    \begin{itemize}
+      \item[$\Rightarrow$] difficult but tempting to compare results
+    \end{itemize}
   \end{itemize}
 \end{itemize}
 \end{frame}
