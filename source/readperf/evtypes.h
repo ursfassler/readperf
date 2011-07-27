@@ -1,7 +1,7 @@
 #ifndef __EVTYPES_H__
 #define __EVTYPES_H__
 
-#include  "evsample.h"
+#include  "origperf.h"
 
 struct evlistEntry{
   struct perf_trace_event_type  event;

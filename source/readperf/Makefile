@@ -1,15 +1,15 @@
 
-CFLAGS=-g -Wall -Wextra -Werror
+CFLAGS=-g -Wall -Wextra -Werror -xc++
 #-pedantic
 OBJFLAGS=-c
 
-readperf: readperf.o evsample.o evtypes.o session.o
-	$(CC) $(CFLAGS) $^ -o $@
+readperf: readperf.o origperf.o evtypes.o session.o errhandler.o
+	$(CC) $^ -o $@
 
 readperf.o: readperf.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-evsample.o: evsample.c
+origperf.o: origperf.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
 evtypes.o: evtypes.c
@@ -18,6 +18,9 @@ evtypes.o: evtypes.c
 session.o: session.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
+errhandler.o: errhandler.c
+	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
+
 clean:
-	rm -f readperf.o evsample.o evtypes.o session.o
+	rm -f readperf.o origperf.o evtypes.o session.o errhandler.o
 

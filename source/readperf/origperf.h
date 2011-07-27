@@ -1,5 +1,5 @@
-#ifndef __EVSAMPLE_H__
-#define __EVSAMPLE_H__
+#ifndef __ORIGPERF_H__
+#define __ORIGPERF_H__
 
 #include  <limits.h>
 #include  <linux/perf_event.h>

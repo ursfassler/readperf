@@ -2,7 +2,7 @@
 #include    <stdlib.h>
 #include    <string.h>
 #include    "session.h"
-
+#include    "errhandler.h"
 
 struct event_id_link {
     u64    id;
@@ -33,70 +33,68 @@ static int i_fd = -1;
     }
 }*/
 
-int readn( int fd, void *buf, size_t count )
+bool readn( int fd, void *buf, size_t count )
 {
   while( count > 0 ){
     int ret = read( fd, buf, count );
-    if( ret <= 0 ){
-      return -1;
+    trysys( ret >= 0 );
+    if( ret == 0 ){
+        set_last_error( ERR_FILE_END_TO_EARLY, NULL );
+        return false;
+    } else {
+        count = count - ret;
+        buf   = ((char*)buf) + ret;
     }
-    count = count - ret;
-    buf   = buf + ret;
   }
-  return 0;
+  return true;
 }
 
-static int add_link( u64 id, struct event_type_entry *entry ){
+static bool add_link( u64 id, struct event_type_entry *entry ){
     if( linkmemory == 0 ){
         linkmemory  = 4;
-        idlink  = malloc( sizeof(*idlink) * linkmemory );
-        if( idlink == NULL ){
-            return -1;
-        }
+        idlink  = (struct event_id_link *)malloc( sizeof(*idlink) * linkmemory );
+        trysys( idlink != NULL );
     } else if( linkmemory == linkcount ) {
         struct event_id_link *old = idlink;
         linkmemory  *= 2;
-        idlink  = malloc( sizeof(*idlink) * linkmemory );
-        if( idlink == NULL ){
-            return -1;
-        }
+        idlink  = (struct event_id_link *)malloc( sizeof(*idlink) * linkmemory );
+        trysys( idlink != NULL );
         memcpy( idlink, old, sizeof(*idlink) * linkcount );
     }
     idlink[linkcount].id = id;
     idlink[linkcount].entry = entry;
     linkcount++;
-    return 0;
+    return true;
 };
 
-static void* readAttr() {
+static bool readAttr() {
     struct perf_file_attr f_attr;
     
     if( (fheader.attrs.size % sizeof( struct perf_file_attr )) != 0 ){
-        fprintf( stderr, "problem with attrs size: %llu %lu\n", fheader.attrs.size, sizeof( struct perf_file_attr ) );
-        return NULL;
+        char buf[256];
+        snprintf( buf, sizeof(buf), "problem with attrs size: %llu %lu", fheader.attrs.size, sizeof( struct perf_file_attr ) );
+        set_last_error( ERR_SIZE_MISMATCH, strdup(buf) );
+        return false;
     }
     eventAttrCount = fheader.attrs.size / sizeof( struct perf_file_attr );
-    eventAttr = malloc( sizeof( *eventAttr ) * eventAttrCount );
+    eventAttr = (struct event_type_entry *)malloc( sizeof( *eventAttr ) * eventAttrCount );
     
-    if( lseek( i_fd, fheader.attrs.offset, SEEK_SET ) < 0 ){
-        return NULL;
-    }
+    trysys( lseek( i_fd, fheader.attrs.offset, SEEK_SET ) >= 0 );
     
     /* special case if there is only one event
      * events don't have an ID tag, use default value
      */
     if( eventAttrCount == 1 ){
-        add_link( -1ULL, &eventAttr[0] );
+        try( add_link( -1ULL, &eventAttr[0] ) );
     }
     
-    unsigned int pos = lseek( i_fd, 0, SEEK_CUR );
+    off_t pos = lseek( i_fd, 0, SEEK_CUR );
     unsigned int i;
     for( i = 0; i < eventAttrCount; i++ ){
-        lseek( i_fd, pos, SEEK_SET );
-        if( readn( i_fd, &f_attr, sizeof(f_attr) ) < 0 ){
-            return NULL;
-        }
+        trysys( lseek( i_fd, pos, SEEK_SET ) >= 0 );
+        try( readn( i_fd, &f_attr, sizeof(f_attr) ) );
         pos = lseek( i_fd, 0, SEEK_CUR );
+        trysys( pos >= 0 );
         
 //        eventAttr[i].attr = f_attr.attr;
         eventAttr[i].config = f_attr.attr.config;
@@ -106,8 +104,8 @@ static void* readAttr() {
             samplingType = f_attr.attr.sample_type;
         } else {
             if( samplingType != f_attr.attr.sample_type ){
-                fprintf( stderr, "samples differ in type\n" );
-                exit( -1 );
+                set_last_error( ERR_SAMPLES_DIFFER_IN_TYPE, NULL );
+                return false;
             }
         }
         
@@ -115,11 +113,11 @@ static void* readAttr() {
         unsigned int idcount = f_attr.ids.size / sizeof(f_id);
         
         if( idcount > 0 ){
-            lseek( i_fd, f_attr.ids.offset, SEEK_SET );
+            trysys( lseek( i_fd, f_attr.ids.offset, SEEK_SET ) >= 0 );
             unsigned int k;
             for( k = 0; k < idcount; k++ ){
-                readn( i_fd, &f_id, sizeof( f_id ) );
-                add_link( f_id, &eventAttr[i] );
+                try( readn( i_fd, &f_id, sizeof( f_id ) ) );
+                try( add_link( f_id, &eventAttr[i] ) );
             }
         }
         
@@ -136,29 +134,30 @@ static void* readAttr() {
         printf( "bp_type: %u\n", f_attr.attr.bp_type );*/
     }
     
-    return 0;
+    return true;
 }
 
-static void readTypes() {
+static bool readTypes() {
     unsigned int traceInfoCount = 0;
     struct perf_trace_event_type *traceInfo = NULL;
     
     if( (fheader.event_types.size % sizeof( struct perf_trace_event_type )) != 0 ){
-        fprintf( stderr, "problem with event_types size: %llu %lu\n", fheader.event_types.size, sizeof( struct perf_file_header ) );
-        return;
+        char buf[256];
+        snprintf( buf, sizeof(buf), "problem with event_types size: %llu %lu\n", fheader.event_types.size, sizeof( struct perf_file_header ) );
+        set_last_error( ERR_SIZE_MISMATCH, strdup(buf) );
+        return false;
     }
     traceInfoCount = fheader.event_types.size / sizeof( struct perf_trace_event_type );
     
-    if( lseek( i_fd, fheader.event_types.offset, SEEK_SET ) < 0 ){
-        return;
-    };
+    trysys( lseek( i_fd, fheader.event_types.offset, SEEK_SET ) >= 0 );
     
-    traceInfo = malloc( fheader.event_types.size );
+    traceInfo = (struct perf_trace_event_type *)malloc( fheader.event_types.size );
+    trysys( traceInfo != NULL );
     
 //    printf( "event offset: %llu size: %llu\n", fheader.event_types.offset, fheader.event_types.size );
 //    printf( "found %i events\n", traceInfoCount );
     
-    readn( i_fd, traceInfo, fheader.event_types.size );
+    try( readn( i_fd, traceInfo, fheader.event_types.size ) );
     
     unsigned int i, k;
     for( i = 0; i < eventAttrCount; i++ ){
@@ -169,11 +168,13 @@ static void readTypes() {
             }
         }
         if( k == traceInfoCount ){
-            fprintf( stderr, "trace info not found for config: %llu\n", eventAttr[i].config );
-            exit( -1 );
+            char buf[256];
+            snprintf( buf, sizeof(buf), "%llu", eventAttr[i].config );
+            set_last_error( ERR_TRACE_INFO_NOT_FOUND_FOR_CONFIG, strdup(buf) );
+            return false;
         }
     }
-    return;
+    return true;
 }
 
 // ---- public ----
@@ -182,48 +183,44 @@ u64 get_sampling_type(){
     return  samplingType;
 }
 
-int next_event_header( struct perf_event_header* header ){
-    if( lseek( i_fd, 0, SEEK_CUR ) >= (int)(fheader.data.offset+fheader.data.size) ){
-        return 0;
-    }
-    if( readn( i_fd, header, sizeof(*header) ) < 0 ){
-        return -1;
-    }
-    return 1;
+bool has_more_events(){
+    off_t off = lseek( i_fd, 0, SEEK_CUR );
+    trysys( off >= 0 ); //TODO: throw exception
+    return off < (int)(fheader.data.offset+fheader.data.size);
+}
+
+bool next_event_header( struct perf_event_header* header ){
+    try( readn( i_fd, header, sizeof(*header) ) );
+    return true;
 };
 
-int read_event_data( union perf_event *evt ){
-    if( evt->header.size > sizeof(*evt) ){
-        return -1;
-    }
-    if( readn( i_fd,  &(evt->sample.array[0]), evt->header.size-sizeof(evt->header) ) < 0 ){
-        return -1;
-    }
-    return 0;
+bool read_event_data( union perf_event *evt ){
+    try( evt->header.size <= sizeof(*evt) );
+    try( readn( i_fd,  &(evt->sample.array[0]), evt->header.size-sizeof(evt->header) ) );
+    return true;
 };
 
-int skip_event_data( struct perf_event_header* header ){
-    if( lseek( i_fd, header->size-sizeof(*header), SEEK_CUR ) < 0 ){
-        return -1;
-    }
-    return 0;
+bool skip_event_data( struct perf_event_header* header ){
+    try( lseek( i_fd, header->size-sizeof(*header), SEEK_CUR ) >= 0 );
+    return true;
 };
 
-int start_session( int fd ){
+bool start_session( int fd ){
     i_fd = fd;
-    if( readn( i_fd, &fheader, sizeof(fheader) ) < 0 ){
-        printf( "problem during reading\n" );
-        return -1;
-    }
+    try( readn( i_fd, &fheader, sizeof(fheader) ) );
+
+    if( fheader.attr_size != sizeof(struct perf_file_attr) ){
+        set_last_error( ERR_SIZE_MISMATCH, "header.attr_size" );
+        return false;
+    };
+//        fprintf( stderr, "data corrupt (maybe needed swap but not implemented)\n" );
     
-    if (fheader.attr_size != sizeof(struct perf_file_attr)) {
-        fprintf( stderr, "data corrupt (maybe needed swap but not implemented)\n" );
-    }
+    try( readAttr() );
+    try( readTypes() );
     
-    readAttr();
-    readTypes();
+    trysys( lseek( i_fd, fheader.data.offset, SEEK_SET ) >= 0 );
     
-    return lseek( i_fd, fheader.data.offset, SEEK_SET );
+    return true;
 }
 
 unsigned int get_entry_count(){
@@ -241,6 +238,7 @@ struct event_type_entry* get_entry( u64 id ){
             return idlink[i].entry;
         }
     }
+    set_last_error( ERR_ENTRY_NOT_FOUND, "session:get_entry" );
     return NULL;
 };
 

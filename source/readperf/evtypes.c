@@ -11,7 +11,7 @@ struct evlist{
 void* createEvlist( unsigned int count )
 {
   size_t size = sizeof(unsigned int) + count * sizeof(struct evlistEntry);
-  struct evlist *list = malloc( size );
+  struct evlist *list = (struct evlist *)malloc( size );
   memset( list, 0, size );
   list->count = count;
   return list;

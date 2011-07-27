@@ -14,7 +14,7 @@ extern "C" {
     
 #include    <stdio.h>
 #include    <linux/perf_event.h>
-#include    "evsample.h"
+#include    "origperf.h"
     
 #define HEADER_FEAT_BITS			256
     
@@ -49,10 +49,11 @@ extern "C" {
     unsigned int get_entry_count();
     struct event_type_entry* get_entry_by_index( unsigned int index );
     struct event_type_entry* get_entry( u64 id );
-    int start_session( int fd );
-    int next_event_header( struct perf_event_header* header );
-    int read_event_data( union perf_event *evt );
-    int skip_event_data( struct perf_event_header* header );
+    bool start_session( int fd );
+    bool has_more_events();
+    bool next_event_header( struct perf_event_header* header );
+    bool read_event_data( union perf_event *evt );
+    bool skip_event_data( struct perf_event_header* header );
     
     
 #ifdef	__cplusplus
