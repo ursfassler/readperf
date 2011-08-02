@@ -1,6 +1,7 @@
 
 #include    <stdlib.h>
 #include    <string.h>
+#include    <stdio.h>
 #include    "session.h"
 #include    "errhandler.h"
 
@@ -20,18 +21,6 @@ static u64 samplingType = 0;
 
 static struct perf_file_header fheader;
 static int i_fd = -1;
-
-/*static void printSampleFormat( __u64 type ) {
-    static const char *names[] = { "IP", "TID", "TIME", "ADDR", "READ", "CALLCHAIN", "ID", "CPU", "PERIOD", "STREAM_ID", "RAW" };
-    unsigned int i;
-    
-    for( i = 0; i < sizeof(names)/sizeof(names[0]); i++ ){
-        if( (type & 1) == 1 ){
-            printf( " %s", names[i] );
-        }
-        type = type >> 1;
-    }
-}*/
 
 bool readn( int fd, void *buf, size_t count )
 {
@@ -205,22 +194,31 @@ bool skip_event_data( struct perf_event_header* header ){
     return true;
 };
 
+bool goto_start_data(){
+    trysys( lseek( i_fd, fheader.data.offset, SEEK_SET ) >= 0 );
+    return true;
+}
+
 bool start_session( int fd ){
     i_fd = fd;
     try( readn( i_fd, &fheader, sizeof(fheader) ) );
+    
+    const char MAGIC[8] = { 'P', 'E', 'R', 'F', 'F', 'I', 'L', 'E' };
+    
+    if( fheader.magic != *((u64 *)MAGIC) ){
+        set_last_error( ERR_NO_PERF_FILE, NULL );
+        return false;
+    }
 
     if( fheader.attr_size != sizeof(struct perf_file_attr) ){
-        set_last_error( ERR_SIZE_MISMATCH, "header.attr_size" );
+        set_last_error( ERR_SIZE_MISMATCH, "maybe needed swap but not implemented" );
         return false;
     };
-//        fprintf( stderr, "data corrupt (maybe needed swap but not implemented)\n" );
     
     try( readAttr() );
     try( readTypes() );
     
-    trysys( lseek( i_fd, fheader.data.offset, SEEK_SET ) >= 0 );
-    
-    return true;
+    return goto_start_data();
 }
 
 unsigned int get_entry_count(){

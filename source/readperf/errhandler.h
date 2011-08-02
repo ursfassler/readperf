@@ -1,8 +1,6 @@
-/*
- * File:   errhandler.h
- * Author: urs
- *
- * Created on July 27, 2011, 11:20 AM
+/**
+ * @file
+ * Routines and datatypes for error handling.
  */
 
 #ifndef _ERRHANDLER_H
@@ -13,11 +11,22 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+
+/**
+ * If the parameter passed to this macro is false, then the function is aborted
+ * and returns false. No error will be reported.
+ * @param val boolean value, if false the function will be aborted
+ */
+#define try( val )  {if( !(val) ){ return false; }}
     
-#define try( func )  if( !(func) ){ return false; }
-#define trysys( val ) if( !(val) ){ set_last_error( errno, NULL ); return false; }
-    
-    enum{
+/**
+ * If the parameter passed to this macro is false, then the function is aborted
+ * and returns false. The last system error (errno) will be reported to 
+ * @link errhandler @endlink.
+ */
+#define trysys( val ) {if( !(val) ){ set_last_error( errno, NULL ); return false; }}
+
+    enum errhandler_t{
         ERR_NONE    = 0,
         ERR_DECODE_SAMPLE,
         ERR_FILE_END_TO_EARLY,
@@ -25,6 +34,7 @@ extern "C" {
         ERR_SAMPLES_DIFFER_IN_TYPE,
         ERR_TRACE_INFO_NOT_FOUND_FOR_CONFIG,
         ERR_ENTRY_NOT_FOUND,
+        ERR_NO_PERF_FILE,
         
         ERR_COUNT
     };

@@ -1,3 +1,9 @@
+/**
+ * @file
+ * This file containes copies of types and functions of the original perf
+ * source.
+ */
+
 #ifndef __ORIGPERF_H__
 #define __ORIGPERF_H__
 

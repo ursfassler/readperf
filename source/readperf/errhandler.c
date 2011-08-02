@@ -12,9 +12,13 @@ static const char *ERROR_TEXT[ERR_COUNT] = {
     "size mismatch",
     "samples differ in type",
     "trace info not found for config",
-    "entry not found"
+    "entry not found",
+    "no perf file"
 };
 
+/**
+ * Prints the last error the stderr.
+ */
 void print_last_error(){
     char buffer[256];
     const char *errmsg;
@@ -36,6 +40,12 @@ void print_last_error(){
     }
 }
 
+/**
+ * Sets the last error with some information.
+ * @param error if <= 0 then it is interpreted as system error, otherwise as
+ *        element of @link errhandler_t @endlink.
+ * @param info additional information or NULL
+ */
 void set_last_error( int error, const char* info ){
     last_error  = error;
     last_info   = info;
