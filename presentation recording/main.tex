@@ -21,7 +21,7 @@
 \title{perf file format}
 %\subtitle{}
 \author{Urs F\"assler}
-\date{14.07.2011}
+\date{02.08.2011}
 \institute
 {
   CERN Openlab
@@ -205,18 +205,38 @@
 \end{center}
 \end{frame}
 
-\begin{frame}{further work}
-\begin{itemize}
-  \item mapping instruction pointer to library functions
-  \item understand mapping event names $\leftrightarrow$ hex code
-  \item understand how the address $\leftrightarrow$ filename works
-  \item understand timestamp of sample
-\end{itemize}
-\end{frame}
-
 \begin{frame}{Demo}
+\only<handout>{
   \rput[lt](0.5,3){\includegraphics[width=11cm]{res/perfReport}}
   \rput[lt](3,0.5){\includegraphics[width=6cm]{res/readperf}}
+}
+\end{frame}
+
+\begin{frame}{detailed file format\label{sec:fileformat}}
+\centering{
+\includegraphics[width=12cm]{res/fileformat}
+}
+\end{frame}
+
+\begin{frame}{map ip to function name}
+\begin{enumerate}
+  \item sample contains Instruction Pointer
+  \item find corresponding mmap event\only<handout>{\footnote{IP has to be in range of mmap}}
+  \begin{itemize}
+    \item mmap events contains binary name
+  \end{itemize}
+  \item addr2line shows source file and function name from IP and binary
+  \item aggregate all samples in the same function
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{further work}
+\begin{itemize}
+  \item understand timestamp of sample
+  \item mapping instruction pointer to library functions
+%  \item understand mapping event names $\leftrightarrow$ hex code
+  \item understand how the address $\leftrightarrow$ filename works
+\end{itemize}
 \end{frame}
 
 \begin{frame}{summary}
