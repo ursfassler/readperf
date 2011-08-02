@@ -1,6 +1,35 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 
+struct node_t {
+  struct node_t *left;
+  struct node_t *rigth;
+};
+
+struct node_t* randTree( unsigned int deepth );
+
+struct node_t* makeNode( unsigned int deepth )
+{
+  if( (deepth == 0) || (rand() % 4 == 0) ){
+    return NULL;
+  } else {
+    return randTree( deepth );
+  }
+}
+
+struct node_t* randTree( unsigned int deepth )
+{
+  struct node_t *node;
+  node = malloc( sizeof( *node ) );
+  if( node == NULL ){
+    perror( "randTree" );
+    exit( -1 );
+  }
+  node->left = makeNode( deepth-1 );
+  node->rigth = makeNode( deepth-1 );
+  return node;
+}
+
 unsigned int recFib( unsigned int n )
 {
   if( n == 0 ){
@@ -29,8 +58,10 @@ unsigned int loopFib( unsigned int n )
 
 int main( int argc, char **argv )
 {
-  recFib( 33 );
-  loopFib( 10000000 );
+  srand( 42 );
+  struct node_t* node = randTree( 30 );
+  printf( "%u\n", recFib( 33 ) );
+  printf( "%u\n", loopFib( 10000000 ) );
   
   return 0;
 }
