@@ -22,6 +22,11 @@ extern "C" {
     void printMmapHeader( FILE* fid, const char *sep );
     void printComm( FILE* fid, u64 ev_nr, struct comm_event *evt, const char *sep );
     void printCommHeader( FILE* fid, const char *sep );
+    void printFork( FILE* fid, u64 ev_nr, struct fork_event *evt, const char *sep );
+    void printForkHeader( FILE* fid, const char *sep );
+    
+#define printExit( fid, ev_nr, evt, sep )   printFork( fid, ev_nr, evt, sep )
+#define printExitHeader( fid, sep )         printForkHeader( fid, sep )
     
 #ifdef	__cplusplus
 }

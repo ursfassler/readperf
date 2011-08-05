@@ -121,3 +121,23 @@ void printCommHeader( FILE* fid,const char *sep ){
     fprintf( fid, "comm%s", sep );
     fprintf( fid, "\n" );
 };
+
+void printFork( FILE* fid, u64 ev_nr, struct fork_event *evt, const char *sep ){
+    fprintf( fid, "%llu%s", ev_nr, sep );
+    fprintf( fid, "%u%s", evt->pid, sep );
+    fprintf( fid, "%u%s", evt->ppid, sep );
+    fprintf( fid, "%u%s", evt->tid, sep );
+    fprintf( fid, "%u%s", evt->ptid, sep );
+    fprintf( fid, "%llu%s", evt->time, sep );
+    fprintf( fid, "\n" );
+};
+
+void printForkHeader( FILE* fid,const char *sep ){
+    fprintf( fid, "nr%s", sep );
+    fprintf( fid, "pid%s", sep );
+    fprintf( fid, "ppid%s", sep );
+    fprintf( fid, "tid%s", sep );
+    fprintf( fid, "ptid%s", sep );
+    fprintf( fid, "time%s", sep );
+    fprintf( fid, "\n" );
+};

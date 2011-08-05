@@ -18,6 +18,15 @@ extern "C" {
  * @param val boolean value, if false the function will be aborted
  */
 #define try( val )  {if( !(val) ){ return false; }}
+
+/**
+ * If the parameter passed to this macro is false, then the function is aborted
+ * and returns false. The error in err will be reported.
+ * @param val boolean value, if false the function will be aborted
+ * @param err enum value of @link errhandler_t @endlink
+ * @param string additional information or NULL
+ */
+#define trymsg( val, err, msg ) {if( !(val) ){ set_last_error( err, msg ); return false; }}
     
 /**
  * If the parameter passed to this macro is false, then the function is aborted
@@ -35,6 +44,7 @@ extern "C" {
         ERR_TRACE_INFO_NOT_FOUND_FOR_CONFIG,
         ERR_ENTRY_NOT_FOUND,
         ERR_NO_PERF_FILE,
+        EER_EXEC_OF_EXTERNAL_PRG_FAILED,
         
         ERR_COUNT
     };

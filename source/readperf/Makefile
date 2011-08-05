@@ -1,6 +1,6 @@
 
-#CFLAGS=-g -Wall -Wextra -Werror -xc++
-CFLAGS=-g -Wall -Wextra -Werror -xc++ -o3
+CFLAGS=-g -Wall -Wextra -Werror -xc++
+#CFLAGS=-g -Wall -Wextra -Werror -xc++ -o3
 #-pedantic
 OBJFLAGS=-c
 

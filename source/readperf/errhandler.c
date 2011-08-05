@@ -13,7 +13,8 @@ static const char *ERROR_TEXT[ERR_COUNT] = {
     "samples differ in type",
     "trace info not found for config",
     "entry not found",
-    "no perf file"
+    "no perf file",
+    "execution of external program failed"
 };
 
 /**

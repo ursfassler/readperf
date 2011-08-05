@@ -2,6 +2,7 @@
 
 #include    <string.h>
 #include    <stdlib.h>
+#include    <unistd.h>
 #include    "errhandler.h"
 
 static struct func_dir* head = NULL;
@@ -70,27 +71,28 @@ static struct func_dir* add_entry(){
 };
 
 static bool get_func( u64 addr, const char *bin_name, char **source_file, char **source_func ){
-    char buffer[4096];
+    char cmd[4096];
+    char tmp[2048];
     
-    trysys( snprintf( buffer, sizeof(buffer), "addr2line -f -e %s %llx", bin_name, addr ) > 0 );
+    trysys( snprintf( cmd, sizeof(cmd), "addr2line -f -e %s %llx", bin_name, addr ) > 0 );
     
-    FILE *output = popen(buffer, "r");
-    
+    FILE *output = popen(cmd, "r");
+
     trysys( output != NULL );
-    
-    trysys( fscanf( output, "%s\n", buffer ) == 1 );
-    *source_func = strdup( buffer );
+
+    trymsg( fscanf( output, "%s\n", tmp ) == 1, EER_EXEC_OF_EXTERNAL_PRG_FAILED, strdup(cmd) );
+    *source_func = strdup( tmp );
     trysys( source_func != NULL );
     
-    trysys( fscanf( output, "%s\n", buffer ) == 1 );
+    trymsg( fscanf( output, "%s\n", tmp ) == 1, EER_EXEC_OF_EXTERNAL_PRG_FAILED, strdup(cmd) );
     unsigned int i;
-    for( i = 0; i < sizeof(buffer)/sizeof(buffer[0]); i++ ){
-        if( buffer[i] == ':' ){
-            buffer[i] = '\0';
+    for( i = 0; i < sizeof(tmp)/sizeof(tmp[0]); i++ ){
+        if( tmp[i] == ':' ){
+            tmp[i] = '\0';
             break;
         }
     }
-    *source_file = strdup( buffer );
+    *source_file = strdup( tmp );
     trysys( source_file != NULL );
     
     pclose( output );
