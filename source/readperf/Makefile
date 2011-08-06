@@ -4,7 +4,7 @@ CFLAGS=-g -Wall -Wextra -Werror -xc++
 #-pedantic
 OBJFLAGS=-c
 
-readperf: readperf.o origperf.o evtypes.o session.o errhandler.o evtprint.o memorymap.o funcstat.o
+readperf: readperf.o origperf.o evtypes.o session.o errhandler.o evtprint.o memorymap.o funcstat.o processes.o
 	$(CC) $^ -o $@
 
 readperf.o: readperf.c
@@ -31,6 +31,9 @@ memorymap.o: memorymap.c
 funcstat.o: funcstat.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
+processes.o: processes.c
+	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
+
 clean:
-	rm -f readperf.o origperf.o evtypes.o session.o errhandler.o evtprint.o memorymap.o funcstat.o
+	rm -f readperf.o origperf.o evtypes.o session.o errhandler.o evtprint.o memorymap.o funcstat.o processes.o
 

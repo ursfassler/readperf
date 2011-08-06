@@ -1,6 +1,9 @@
 
 name=test
 
+overflow: overflow.c
+	gcc -pthread -o3 $^ -o $@
+
 $(name): $(name).c
 	gcc -ggdb $^ -o $@
 

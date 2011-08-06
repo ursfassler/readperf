@@ -14,7 +14,10 @@ static const char *ERROR_TEXT[ERR_COUNT] = {
     "trace info not found for config",
     "entry not found",
     "no perf file",
-    "execution of external program failed"
+    "execution of external program failed",
+    "process already exists",
+    "process not found",
+    "EXIT-hack does not work"
 };
 
 /**

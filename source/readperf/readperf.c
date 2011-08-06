@@ -15,6 +15,11 @@
 #include    "evtprint.h"
 #include    "memorymap.h"
 #include    "funcstat.h"
+#include    "processes.h"
+
+static u32 fail_counter = 0;
+
+#define     MAGIC_ACCESS_DISTANCE   100
 
 static bool produce_statistic = false;
 
@@ -34,8 +39,14 @@ static FILE *exit_file = NULL;
 #define OVERVIEW_LOG_NAME   "overview.csv"
 static FILE *overview_file = NULL;
 
+#define SUMMARY_LOG_NAME   "summary.csv"
+static FILE *summary_file = NULL;
+
+
 #define STAT_LOG_NAME   "stat.csv"
 #define FUNC_LOG_NAME   "func.csv"
+
+proc_tree_t activeTree;
 
 static const char *NAMES[] = { NULL, "MMAP", "LOST", "COMM", "EXIT", "THROTTLE", "UNTHROTTLE", "FORK", "READ", "SAMPLE" };
 
@@ -65,6 +76,32 @@ static bool decodeSample( u64 ev_nr, union perf_event *evt ) {
         set_last_error( ERR_DECODE_SAMPLE, NULL );
         return false;
     }
+    
+    if( (get_sampling_type() & (PERF_SAMPLE_TID | PERF_SAMPLE_TIME)) == (PERF_SAMPLE_TID | PERF_SAMPLE_TIME) ){
+        struct process *proc = find_process( &activeTree, sample.pid, sample.tid );
+        if( proc == NULL ){
+            fail_counter++;
+            /*            proc = create_process(&activeTree, sample.pid, sample.tid, ev_nr);
+             * trysys( proc != NULL );*/
+        } else {
+            if( proc->fork_time > sample.time ){
+                fail_counter++;
+            }
+            if( (proc->exit_time != 0) && (proc->exit_time < sample.time) ){  // now we have a sample outside a fork - exit :-(
+                fail_counter++;
+                /*                print_process( proc, summary_file );
+                 * remove_process( &activeTree, proc );
+                 * free( proc );
+                 * proc = create_process(&activeTree, sample.pid, sample.tid, ev_nr);
+                 * trysys( proc != NULL );*/
+            }
+        }
+        if( proc != NULL ){
+            proc->samples++;
+            proc->period += sample.period;
+        }
+    }
+    
     
     struct event_type_entry* entry = get_entry( sample.id );
     try( entry != NULL );
@@ -104,88 +141,129 @@ static bool decodeSample( u64 ev_nr, union perf_event *evt ) {
     return true;
 }
 
-static bool decodeMmap( u64 ev_nr, union perf_event *evt ) {
+static bool decodeMmap( u64 ev_nr, struct mmap_event *evt ) {
+    struct process *proc = find_process( &activeTree, evt->pid, evt->tid );
+    if( proc == NULL ){
+        proc = create_process(&activeTree, evt->pid, evt->tid, ev_nr);
+        trysys( proc != NULL );
+    } else {
+        if( proc->exit_time != 0 ){     // it is an old process
+            print_process( proc, summary_file );
+            remove_process( &activeTree, proc );
+            free( proc );
+            proc = create_process(&activeTree, evt->pid, evt->tid, ev_nr);
+            trysys( proc != NULL );
+        }
+    }
+    
     if( produce_statistic ){
         struct mmap_entry *entry = mm_add_entry();
         if( entry == NULL ){
             return false;
         }
-        entry->pid = evt->mmap.pid;
-        entry->tid = evt->mmap.tid;
-        entry->start = evt->mmap.start;
-        entry->end   = evt->mmap.start+evt->mmap.len-1;
-        memcpy( entry->filename, evt->mmap.filename, sizeof(entry->filename) );
+        entry->pid = evt->pid;
+        entry->tid = evt->tid;
+        entry->start = evt->start;
+        entry->end   = evt->start+evt->len-1;
+        memcpy( entry->filename, evt->filename, sizeof(entry->filename) );
     }
     
     /*    struct log_entry *entry = forceLogEntry( evt->mmap.pid, evt->mmap.tid, 0, NULL, evt->mmap.filename );
      * if( entry->filename == NULL ){
      * entry->filename = strndup( evt->mmap.filename, sizeof( evt->mmap.filename) );
      * }*/
-    printMmap( mmap_file, ev_nr, &evt->mmap, SEP );
-    log_overview_s( ev_nr, PERF_RECORD_MMAP, evt->mmap.pid, evt->mmap.tid, 0, evt->mmap.filename );
+    printMmap( mmap_file, ev_nr, evt, SEP );
+    log_overview_s( ev_nr, PERF_RECORD_MMAP, evt->pid, evt->tid, 0, evt->filename );
     return true;
 }
 
-static bool decodeComm( u64 ev_nr, union perf_event *evt ) {
-    (void)evt;
-    /*    struct log_entry *entry = forceLogEntry( evt->comm.pid, evt->comm.tid, 0, evt->comm.comm, NULL );
-     * if( entry->comm == NULL ){
-     * entry->comm = strndup( evt->comm.comm, sizeof( evt->comm.comm) );
-     * }*/
-    printComm( comm_file, ev_nr, &evt->comm, SEP );
-    log_overview_s( ev_nr, PERF_RECORD_COMM, evt->comm.pid, evt->comm.tid, 0, evt->comm.comm );
+static bool decodeComm( u64 ev_nr, struct comm_event *evt ) {
+    struct process *proc = find_process( &activeTree, evt->pid, evt->tid );
+    if( proc == NULL ){
+        proc = create_process(&activeTree, evt->pid, evt->tid, ev_nr);
+        trysys( proc != NULL );
+    } else {
+        if( proc->exit_time != 0 ){     // it is an old process
+            print_process( proc, summary_file );
+            remove_process( &activeTree, proc );
+            free( proc );
+            proc = create_process(&activeTree, evt->pid, evt->tid, ev_nr );
+            trysys( proc != NULL );
+        }
+    }
+    memcpy( proc->comm, evt->comm, sizeof(proc->comm) );
+    
+    printComm( comm_file, ev_nr, evt, SEP );
+    log_overview_s( ev_nr, PERF_RECORD_COMM, evt->pid, evt->tid, 0, evt->comm );
     return true;
 }
 
-static bool decodeFork( u64 ev_nr, union perf_event *evt ) {
-    printFork( fork_file, ev_nr, &evt->fork, SEP );
-    log_overview_i( ev_nr, PERF_RECORD_FORK, evt->fork.pid, evt->fork.tid, evt->fork.time, evt->fork.ppid );
-    return true;
-}
-
-static bool decodeExit( u64 ev_nr, union perf_event *evt ) {
-    printExit( exit_file, ev_nr, &evt->fork, SEP );
-    log_overview( ev_nr, PERF_RECORD_EXIT, evt->fork.pid, evt->fork.tid, evt->fork.time );
-    return true;
-}
-
-bool buildMap() {
-    u64 ev_nr = 0;
-    printMmapHeader( mmap_file, SEP );
-    printCommHeader( comm_file, SEP );
-    printForkHeader( fork_file, SEP );
-    printExitHeader( exit_file, SEP );
-    while( has_more_events() ){
-        union perf_event evt;
-        try( next_event_header( &evt.header ) );
-        switch( evt.header.type ){
-            case PERF_RECORD_COMM:{
-                try( read_event_data( &evt ) );
-                try( decodeComm( ev_nr, &evt ) );
-                break;
-            }
-            case PERF_RECORD_MMAP:{
-                try( read_event_data( &evt ) );
-                try( decodeMmap( ev_nr, &evt ) );
-                break;
-            }
-            case PERF_RECORD_FORK:{
-                try( read_event_data( &evt ) );
-                try( decodeFork( ev_nr, &evt ) );
-                break;
-            }
-            case PERF_RECORD_EXIT:{
-                try( read_event_data( &evt ) );
-                try( decodeExit( ev_nr, &evt ) );
-                break;
-            }
-            default:{
-                try( skip_event_data( &evt.header ) );
-                break;
+static bool decodeFork( u64 ev_nr, struct fork_event *evt ) {
+    struct process *proc = find_process( &activeTree, evt->pid, evt->tid );
+    if( proc == NULL ){
+        proc = create_process(&activeTree, evt->pid, evt->tid, ev_nr);
+        trysys( proc != NULL );
+    } else {
+        if( proc->fork_time != 0 ){
+            if( proc->exit_time != 0 ){     // it is an old process
+                print_process( proc, summary_file );
+                remove_process( &activeTree, proc );
+                free( proc );
+                proc = create_process(&activeTree, evt->pid, evt->tid, ev_nr);
+                trysys( proc != NULL );
+            } else {
+                char buffer[1024];
+                snprintf( buffer, sizeof(buffer), "%llu %i:%i", ev_nr, evt->pid, evt->tid );
+                set_last_error( ERR_PROC_ALREADY_EXISTS, strdup(buffer) );
+                return true;
             }
         }
-        ev_nr++;
     }
+    proc->fork_time = evt->time;
+    
+    printFork( fork_file, ev_nr, evt, SEP );
+    log_overview_i( ev_nr, PERF_RECORD_FORK, evt->pid, evt->tid, evt->time, evt->ppid );
+    return true;
+}
+
+static bool decodeExit( u64 ev_nr, struct fork_event *evt ) {
+    //EXIT comes twice with different time
+    static u64 last_exit_nr = 0;
+    static bool second_exit = false;
+    if( !second_exit ){
+        last_exit_nr = ev_nr;
+        second_exit = true;
+    } else {
+        if( ev_nr-last_exit_nr > 42 ){
+            char buffer[1024];
+            snprintf( buffer, sizeof(buffer), "%llu | %llu", last_exit_nr, ev_nr );
+            set_last_error( ERR_EXIT_HACK_DOES_NOT_WORK, strdup(buffer) );
+            return false;
+        }
+        second_exit = false;
+        
+        struct process *proc = find_process(&activeTree, evt->pid, evt->tid );
+        if( proc == NULL ){
+            /*            proc = create_process(&activeTree, evt->pid, evt->tid, ev_nr );
+             * try( proc != NULL );*/
+        } else {
+            proc->exit_time = evt->time;
+            print_process( proc, summary_file );
+            remove_process( &activeTree, proc );
+            free( proc );
+            /*            if( proc->exit_time != 0 ){
+             * print_process( proc, summary_file );
+             * remove_process( &activeTree, proc );
+             * free( proc );
+             * proc = create_process(&activeTree, evt->pid, evt->tid, ev_nr );
+             * trysys( proc != NULL );
+             * }*/
+        }
+//        proc->exit_time = evt->time;
+    }
+    
+    printExit( exit_file, ev_nr, evt, SEP );
+    log_overview( ev_nr, PERF_RECORD_EXIT, evt->pid, evt->tid, evt->time );
     return true;
 }
 
@@ -201,6 +279,26 @@ bool readEvents() {
             count[0]++;
         }
         switch( evt.header.type ){
+            case PERF_RECORD_COMM:{
+                try( read_event_data( &evt ) );
+                try( decodeComm( ev_nr, &evt.comm ) );
+                break;
+            }
+            case PERF_RECORD_MMAP:{
+                try( read_event_data( &evt ) );
+                try( decodeMmap( ev_nr, &evt.mmap ) );
+                break;
+            }
+            case PERF_RECORD_FORK:{
+                try( read_event_data( &evt ) );
+                try( decodeFork( ev_nr, &evt.fork ) );
+                break;
+            }
+            case PERF_RECORD_EXIT:{
+                try( read_event_data( &evt ) );
+                try( decodeExit( ev_nr, &evt.fork ) );
+                break;
+            }
             case PERF_RECORD_SAMPLE:{
                 try( read_event_data( &evt ) );
                 try( decodeSample( ev_nr, &evt ) );
@@ -228,6 +326,8 @@ int main( int argc, char **argv ) {
         return -1;
     }
     
+    activeTree = init_processes();
+    
     memset( count, 0, sizeof(count) );
     
     if( !start_session( fd ) ){
@@ -246,23 +346,23 @@ int main( int argc, char **argv ) {
     comm_file  = fopen( COMM_LOG_NAME, "w+" );
     fork_file  = fopen( FORK_LOG_NAME, "w+" );
     exit_file  = fopen( EXIT_LOG_NAME, "w+" );
-    if( !buildMap() ){
-        print_last_error();
-        return -1;
-    }
-    fclose( exit_file );
-    fclose( fork_file );
-    fclose( comm_file );
-    fclose( mmap_file );
-    
-    goto_start_data();
-    
     sample_fid  = fopen( SAMPLE_LOG_NAME, "w+" );
+    summary_file  = fopen( SUMMARY_LOG_NAME, "w+" );
+    print_process_header( summary_file );
+    
     if( !readEvents() ){
         print_last_error();
         return -1;
     }
+    
+    print_processes( &activeTree, summary_file );
+    
+    fclose( summary_file );
     fclose( sample_fid );
+    fclose( exit_file );
+    fclose( fork_file );
+    fclose( comm_file );
+    fclose( mmap_file );
     fclose( overview_file );
     
     printf( "found events\n" );
@@ -292,7 +392,12 @@ int main( int argc, char **argv ) {
         func_stat_print( stdout );
     }
     
+    printf( "fail_counter: %u\n", fail_counter );
+    
+    /*    fprintf( stdout, "-- activeTree tree --\n" );
+     * print_processes( &activeTree, stdout );
+     * fprintf( stdout, "-- dead tree --\n" );
+     * print_processes( &deadTree, stdout );*/
+    
     return 0;
 }
-
-

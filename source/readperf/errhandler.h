@@ -45,6 +45,9 @@ extern "C" {
         ERR_ENTRY_NOT_FOUND,
         ERR_NO_PERF_FILE,
         EER_EXEC_OF_EXTERNAL_PRG_FAILED,
+        ERR_PROC_ALREADY_EXISTS,
+        ERR_PROC_NOT_FOUND,
+        ERR_EXIT_HACK_DOES_NOT_WORK,
         
         ERR_COUNT
     };
