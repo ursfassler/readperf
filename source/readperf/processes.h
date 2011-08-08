@@ -34,7 +34,6 @@ extern "C" {
         u64 exit_time;
         u64 samples;
         u64 period;
-        u64 last_access;
         char comm[16];
         struct proc_mmap    *mmap;
     };
@@ -44,7 +43,7 @@ extern "C" {
     proc_tree_t init_processes();
     struct process *find_process( proc_tree_t *tree, u32 pid, u32 tid );
 //    struct process *force_process( proc_tree_t *tree, u32 pid, u32 tid );
-    struct process *create_process( proc_tree_t *tree, u32 pid, u32 tid, u64 last_access );
+    struct process *create_process( proc_tree_t *tree, u32 pid, u32 tid );
 //    bool add_process( proc_tree_t *tree, struct process *proc );
     void remove_process( proc_tree_t *tree, struct process *proc );
     void print_process_header( FILE* fid );

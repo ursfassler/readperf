@@ -37,12 +37,11 @@ struct process *find_process( proc_tree_t *tree, u32 pid, u32 tid ){
     return proc;
 };*/
 
-struct process *create_process( proc_tree_t *tree, u32 pid, u32 tid, u64 last_access ){
+struct process *create_process( proc_tree_t *tree, u32 pid, u32 tid ){
     struct process *proc    = (struct process *)malloc( sizeof(*proc) );
     memset( proc, 0, sizeof(*proc) );
     proc->pid = pid;
     proc->tid = tid;
-    proc->last_access = last_access;
     TREE_INSERT( tree, process, PROC_TREE_LINK, proc);
     return proc;
 };
