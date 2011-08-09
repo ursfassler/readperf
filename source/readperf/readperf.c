@@ -15,8 +15,8 @@
 #include    "evtprint.h"
 #include    "memorymap.h"
 #include    "funcstat.h"
-#include    "processes.h"
 #include    "records.h"
+#include    "processes.h"
 
 static u32 sample_fail = 0;
 static u32 mmap_fail = 0;
@@ -49,17 +49,16 @@ static FILE *summary_file = NULL;
 #define FUNC_LOG_NAME   "func.csv"
 
 record_tree_t procOrder;
-time_order_tree_t orderTree;
+record_order_tree_t orderTree;
 
 static const char *NAMES[] = { NULL, "MMAP", "LOST", "COMM", "EXIT", "THROTTLE", "UNTHROTTLE", "FORK", "READ", "SAMPLE" };
 
-void checkOrder(struct time_order *proc, void *data){
+void checkOrder(struct record_t *proc, void *data){
     (void)data;
     
-    if( proc->isStart ){
-        start_run( &procOrder, proc->pid, proc->tid, proc->time, proc->nr );
-    } else {
-        stop_run( &procOrder, proc->pid, proc->tid, proc->time, proc->nr );
+    switch( proc->type ){
+        case OE_START: start_process( &procOrder, proc->pid, proc->tid, proc->time, proc->nr ); break;
+        case OE_END:   stop_process( &procOrder, proc->pid, proc->tid, proc->time, proc->nr );  break;
     }
 };
 
@@ -91,17 +90,15 @@ static bool decodeSample( u64 ev_nr, union perf_event *evt ) {
     }
     
     if( (get_sampling_type() & (PERF_SAMPLE_TID | PERF_SAMPLE_TIME)) == (PERF_SAMPLE_TID | PERF_SAMPLE_TIME) ){
-        struct run* run = find_run( &procOrder, sample.pid, sample.tid, sample.time, ev_nr );
+        struct process* run = find_process( &procOrder, sample.pid, sample.tid, sample.time, ev_nr );
         
         if( run != NULL ){
             run->samples++;
             run->period += sample.period;
         } else {
             sample_fail++;
-            printSample( sample_fid, ev_nr, &sample, get_sampling_type(), SEP );
         }
     }
-    
     
     struct event_type_entry* entry = get_entry( sample.id );
     try( entry != NULL );
@@ -112,33 +109,31 @@ static bool decodeSample( u64 ev_nr, union perf_event *evt ) {
         entry->samples++;
         entry->period += sample.period;
     }
-    /*    if( (get_sampling_type() & (PERF_SAMPLE_TID | PERF_SAMPLE_PERIOD | PERF_SAMPLE_IP)) == (PERF_SAMPLE_TID | PERF_SAMPLE_PERIOD | PERF_SAMPLE_IP) ){
-     * struct log_entry *entry = forceLogEntry( sample.pid, sample.tid, sample.ip, NULL, NULL );
-     * entry->period += sample.period;
-     * entry->samples++;
-     * }*/
-//    printSample( sample_fid, ev_nr, &sample, get_sampling_type(), SEP );
+    
+    printSample( sample_fid, ev_nr, &sample, get_sampling_type(), SEP );
     log_overview_i( ev_nr, PERF_RECORD_SAMPLE, sample.pid, sample.tid, sample.time, sample.period );
     
     return true;
 }
 
 static bool decodeMmap( u64 ev_nr, struct mmap_event *evt ) {
-    add_time_order( &orderTree, evt->pid == (u32)-1 ? 0 : evt->pid, evt->tid, 0, ev_nr, true );
+    add_record_order( &orderTree, evt->pid == (u32)-1 ? 0 : evt->pid, evt->tid, 0, ev_nr, OE_START );
     
+    printMmap( mmap_file, ev_nr, evt, SEP );
     log_overview_s( ev_nr, PERF_RECORD_MMAP, evt->pid, evt->tid, 0, evt->filename );
     return true;
 }
 
 static bool decodeComm( u64 ev_nr, struct comm_event *evt ) {
-    add_time_order( &orderTree, evt->pid, evt->tid, 0, ev_nr, true );
+    add_record_order( &orderTree, evt->pid, evt->tid, 0, ev_nr, OE_START );
     
+    printComm( comm_file, ev_nr, evt, SEP );
     log_overview_s( ev_nr, PERF_RECORD_COMM, evt->pid, evt->tid, 0, evt->comm );
     return true;
 }
 
 static bool decodeFork( u64 ev_nr, struct fork_event *evt ) {
-    add_time_order( &orderTree, evt->pid, evt->tid, evt->time, ev_nr, true );
+    add_record_order( &orderTree, evt->pid, evt->tid, evt->time, ev_nr, OE_START );
     
     printFork( fork_file, ev_nr, evt, SEP );
     log_overview_i( ev_nr, PERF_RECORD_FORK, evt->pid, evt->tid, evt->time, evt->ppid );
@@ -146,7 +141,7 @@ static bool decodeFork( u64 ev_nr, struct fork_event *evt ) {
 }
 
 static bool decodeExit( u64 ev_nr, struct fork_event *evt ) {
-    add_time_order( &orderTree, evt->pid, evt->tid, evt->time, ev_nr, false );
+    add_record_order( &orderTree, evt->pid, evt->tid, evt->time, ev_nr, OE_END );
     
     printExit( exit_file, ev_nr, evt, SEP );
     log_overview( ev_nr, PERF_RECORD_EXIT, evt->pid, evt->tid, evt->time );
@@ -155,7 +150,6 @@ static bool decodeExit( u64 ev_nr, struct fork_event *evt ) {
 
 bool readEvents() {
     u64 ev_nr = 0;
-    printSampleHeader( sample_fid, get_sampling_type(), SEP );
     while( has_more_events() ){
         union perf_event evt;
         try( next_event_header( &evt.header ) );
@@ -185,11 +179,6 @@ bool readEvents() {
                 try( decodeExit( ev_nr, &evt.fork ) );
                 break;
             }
-            /*            case PERF_RECORD_SAMPLE:{
-             * try( read_event_data( &evt ) );
-             * try( decodeSample( ev_nr, &evt ) );
-             * break;
-             * }*/
             default:{
                 try( skip_event_data( &evt.header ) );
                 break;
@@ -208,18 +197,17 @@ bool applySamples() {
         switch( evt.header.type ){
             case PERF_RECORD_COMM:{
                 try( read_event_data( &evt ) );
-                struct run* run = find_run( &procOrder, evt.comm.pid, evt.comm.tid, (u64)-1, ev_nr );
+                struct process* run = find_process( &procOrder, evt.comm.pid, evt.comm.tid, (u64)-1, ev_nr );
                 if( run != NULL ){
                     memcpy( run->comm, evt.comm.comm, sizeof(run->comm) );
                 } else {
                     comm_fail++;
-                    printComm( comm_file, ev_nr, &evt.comm, SEP );
                 }
                 break;
             }
             case PERF_RECORD_MMAP:{
                 try( read_event_data( &evt ) );
-                struct run* run = find_run( &procOrder, evt.mmap.pid == (u32)-1 ? 0 : evt.mmap.pid, evt.mmap.tid, (u64)-1, ev_nr );
+                struct process* run = find_process( &procOrder, evt.mmap.pid == (u32)-1 ? 0 : evt.mmap.pid, evt.mmap.tid, (u64)-1, ev_nr );
                 if( run != NULL ){
                     struct rmmap *old = run->mmaps;
                     run->mmaps = (struct rmmap *)malloc( sizeof(*run->mmaps) );
@@ -230,7 +218,6 @@ bool applySamples() {
                     memcpy( run->mmaps->filename, evt.mmap.filename, sizeof(run->mmaps->filename) );
                 } else {
                     mmap_fail++;
-                    printMmap( mmap_file, ev_nr, &evt.mmap, SEP );
                 }
                 break;
             }
@@ -249,8 +236,12 @@ bool applySamples() {
     return true;
 }
 
-static void run_cb(struct run *run, struct records *rec){
-    printf( "%u,%u,\"%s\",%llu,%llu,%llu,%llu,%llu,%llu\n", rec->pid, rec->tid, run->comm, run->fork_time, run->exit_time, run->first_nr, run->last_nr, run->samples, run->period );
+static void printSummaryHeader(){
+    fprintf( summary_file, "%s,%s,%s,%s,%s,%s,%s,%s,%s\n", "pid", "tid", "comm", "fork_time", "exit_time", "first_nr", "last_nr", "samples", "period" );
+};
+
+static void run_cb(struct process *run, struct pid_record *rec){
+    fprintf( summary_file, "%u,%u,\"%s\",%llu,%llu,%llu,%llu,%llu,%llu\n", rec->pid, rec->tid, run->comm, run->fork_time, run->exit_time, run->first_nr, run->last_nr, run->samples, run->period );
 };
 
 int main( int argc, char **argv ) {
@@ -265,7 +256,7 @@ int main( int argc, char **argv ) {
         return -1;
     }
     
-    orderTree  = init_time_order();
+    orderTree  = init_record_order();
     
     memset( count, 0, sizeof(count) );
     
@@ -282,12 +273,19 @@ int main( int argc, char **argv ) {
     fprintf( overview_file, "nr%stype%spid%stid%stime%sinfo\n", SEP, SEP, SEP, SEP, SEP );
     
     mmap_file  = fopen( MMAP_LOG_NAME, "w+" );
+    printMmapHeader( mmap_file, SEP );
+    
     comm_file  = fopen( COMM_LOG_NAME, "w+" );
+    printCommHeader( comm_file, SEP );
+    
     fork_file  = fopen( FORK_LOG_NAME, "w+" );
+    printForkHeader( fork_file, SEP );
+    
     exit_file  = fopen( EXIT_LOG_NAME, "w+" );
+    printExitHeader( exit_file, SEP );
+    
     sample_fid  = fopen( SAMPLE_LOG_NAME, "w+" );
-    summary_file  = fopen( SUMMARY_LOG_NAME, "w+" );
-    print_process_header( summary_file );
+    printSampleHeader( sample_fid, get_sampling_type(), SEP );
     
     if( !readEvents() ){
         print_last_error();
@@ -303,7 +301,6 @@ int main( int argc, char **argv ) {
         return -1;
     }
     
-    fclose( summary_file );
     fclose( sample_fid );
     fclose( exit_file );
     fclose( fork_file );
@@ -311,7 +308,10 @@ int main( int argc, char **argv ) {
     fclose( mmap_file );
     fclose( overview_file );
     
-    iterate_runs( &procOrder, run_cb );
+    summary_file  = fopen( SUMMARY_LOG_NAME, "w+" );
+    printSummaryHeader();
+    iterate_process( &procOrder, run_cb );
+    fclose( summary_file );
     
     printf( "found events\n" );
     unsigned int i;
