@@ -37,6 +37,7 @@ extern "C" {
 
     enum errhandler_t{
         ERR_NONE    = 0,
+        ERR_NOT_YET_DEFINED,
         ERR_DECODE_SAMPLE,
         ERR_FILE_END_TO_EARLY,
         ERR_SIZE_MISMATCH,

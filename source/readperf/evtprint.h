@@ -14,6 +14,7 @@ extern "C" {
     
 #include    <stdio.h>
 #include    "types.h"
+#include    "origperf.h"
     
     void printSampleFormat( __u64 type );
     void printSample( FILE* fid, u64 ev_nr, struct perf_sample *sample, u64 type, const char *sep );

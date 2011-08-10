@@ -25,38 +25,28 @@ extern "C" {
     };
     
     struct process {
-        struct process *next;
+        TREE_ENTRY(process)      RECORD_TREE_LINK;
+        u32 pid;
         u64 fork_time;
         u64 exit_time;
-        u64 first_nr;
-        u64 last_nr;
         u64 samples;
         u64 period;
 	char comm[16];
         struct rmmap *mmaps;
     };
     
-    struct pid_record {
-        TREE_ENTRY(pid_record)      RECORD_TREE_LINK;
-        u32 pid;
-        u32 tid;
-        struct process  *procs;
-    };
-    
-    typedef TREE_HEAD(_RecordTree, pid_record) record_tree_t;
-    
-    bool start_process( record_tree_t *tree, u32 pid, u32 tid, u64 time, u64 nr );
-    bool stop_process( record_tree_t *tree, u32 pid, u32 tid, u64 time, u64 nr );
-    struct process* find_process( record_tree_t *tree, u32 pid, u32 tid, u64 time, u64 nr );
-    void iterate_process( record_tree_t *tree, void (*callback)(struct process *run, struct pid_record *rec) );
+    typedef TREE_HEAD(_RecordTree, process) record_tree_t;
     
     record_tree_t init_records();
-    struct pid_record* create_record( record_tree_t *tree, u32 pid, u32 tid );
-    struct pid_record* find_record( record_tree_t *tree, u32 pid, u32 tid );
+    struct process* create_record( record_tree_t *tree, u32 pid );
+    bool remove_record( record_tree_t *tree, struct process* proc );
+    
+    struct process* find_record( record_tree_t *tree, u32 pid );
+    
     void print_record_header( FILE* fid );
-    void print_record( struct pid_record *proc, FILE* fid );
+    void print_record( struct process *proc, FILE* fid );
     void print_records( record_tree_t *tree, FILE* fid );
-    void iterate_records( record_tree_t *tree, void (*callback)(struct pid_record *proc, void *data), void *data );
+    void iterate_records( record_tree_t *tree, void (*callback)(struct process *proc, void *data), void *data );
     
 
 #ifdef	__cplusplus

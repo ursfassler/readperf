@@ -7,6 +7,7 @@ static const char* last_info = NULL;
 
 static const char *ERROR_TEXT[ERR_COUNT] = {
     "no error",
+    "not yet defined",
     "decode sample",
     "file ended to early",
     "size mismatch",

@@ -2,19 +2,32 @@
 #include    <stdlib.h>
 #include    <string.h>
 #include    "errhandler.h"
+#include    "session.h"
 
 TREE_DEFINE(record_t, RECORD_TREE_LINK);
 
-void add_record_order( record_order_tree_t *tree, u32 pid, u32 tid, u64 time, u64 nr, order_entry_t type ){
-    struct record_t *proc    = (struct record_t *)malloc( sizeof(*proc) );
-    memset( proc, 0, sizeof(*proc) );
-    proc->pid = pid;
-    proc->tid = tid;
-    proc->time = time;
-    proc->type = type;
-    proc->nr = nr;
-    TREE_INSERT( tree, record_t, RECORD_TREE_LINK, proc);
-}
+    struct record_t* create_order_record( size_t size );
+
+/*bool add_event( record_order_tree_t *tree, u64 ev_nr, const union perf_event *evt ){
+    struct perf_sample  sample;
+    if( perf_event__parse_sample( evt, get_sampling_type(), true, &sample ) < 0 ){
+        set_last_error( ERR_NOT_YET_DEFINED, "add_event:perf_event__parse_sample" );
+        return false;
+    }
+    
+    struct record_t *rec = (struct record_t *)malloc( sizeof(*rec) );
+    trysys( rec != NULL );
+    memset( rec, 0, sizeof(*rec) );
+    rec->nr = ev_nr;
+    rec->time = sample.time;
+    rec->event = *evt;
+    return add_record_order( tree, rec );
+};*/
+
+bool add_record_order( record_order_tree_t *tree, struct record_t *rec ){
+    TREE_INSERT( tree, record_t, RECORD_TREE_LINK, rec);
+    return true;
+};
 
 static int compare(struct record_t *lhs, struct record_t *rhs) {
     if( lhs->time > rhs->time ){

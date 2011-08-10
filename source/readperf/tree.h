@@ -68,9 +68,9 @@
 
 #define TREE_DEFINE(node, field)									\
 													\
-  struct node *TREE_BALANCE_##node##_##field(struct node *);						\
+  static struct node *TREE_BALANCE_##node##_##field(struct node *);						\
 													\
-  struct node *TREE_ROTL_##node##_##field(struct node *self)						\
+  static struct node *TREE_ROTL_##node##_##field(struct node *self)						\
   {													\
     struct node *r= self->field.avl_right;								\
     self->field.avl_right= r->field.avl_left;								\
@@ -78,7 +78,7 @@
     return TREE_BALANCE_##node##_##field(r);								\
   }													\
 													\
-  struct node *TREE_ROTR_##node##_##field(struct node *self)						\
+  static struct node *TREE_ROTR_##node##_##field(struct node *self)						\
   {													\
     struct node *l= self->field.avl_left;								\
     self->field.avl_left= l->field.avl_right;								\
@@ -86,7 +86,7 @@
     return TREE_BALANCE_##node##_##field(l);								\
   }													\
 													\
-  struct node *TREE_BALANCE_##node##_##field(struct node *self)						\
+  static struct node *TREE_BALANCE_##node##_##field(struct node *self)						\
   {													\
     int delta= TREE_DELTA(self, field);									\
 													\
@@ -111,7 +111,7 @@
     return self;											\
   }													\
 													\
-  struct node *TREE_INSERT_##node##_##field								\
+  static struct node *TREE_INSERT_##node##_##field								\
     (struct node *self, struct node *elm, int (*compare)(struct node *lhs, struct node *rhs))		\
   {													\
     if (!self)												\
@@ -123,7 +123,7 @@
     return TREE_BALANCE_##node##_##field(self);								\
   }													\
 													\
-  struct node *TREE_FIND_##node##_##field								\
+  static struct node *TREE_FIND_##node##_##field								\
     (struct node *self, struct node *elm, int (*compare)(struct node *lhs, struct node *rhs))		\
   {													\
     if (!self)												\
@@ -136,7 +136,7 @@
       return TREE_FIND_##node##_##field(self->field.avl_right, elm, compare);				\
   }													\
 													\
-  struct node *TREE_MOVE_RIGHT(struct node *self, struct node *rhs)					\
+  static struct node *TREE_MOVE_RIGHT(struct node *self, struct node *rhs)					\
   {													\
     if (!self)												\
       return rhs;											\
@@ -144,7 +144,7 @@
     return TREE_BALANCE_##node##_##field(self);								\
   }													\
 													\
-  struct node *TREE_REMOVE_##node##_##field								\
+  static struct node *TREE_REMOVE_##node##_##field								\
     (struct node *self, struct node *elm, int (*compare)(struct node *lhs, struct node *rhs))		\
   {													\
     if (!self) return 0;										\
@@ -163,7 +163,7 @@
     return TREE_BALANCE_##node##_##field(self);								\
   }													\
 													\
-  void TREE_FORWARD_APPLY_ALL_##node##_##field								\
+  static void TREE_FORWARD_APPLY_ALL_##node##_##field								\
     (struct node *self, void (*function)(struct node *node, void *data), void *data)			\
   {													\
     if (self)												\
@@ -174,7 +174,7 @@
       }													\
   }													\
 													\
-  void TREE_REVERSE_APPLY_ALL_##node##_##field								\
+  static void TREE_REVERSE_APPLY_ALL_##node##_##field								\
     (struct node *self, void (*function)(struct node *node, void *data), void *data)			\
   {													\
     if (self)												\

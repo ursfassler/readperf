@@ -19,24 +19,46 @@ extern "C" {
     
 #define RECORD_TREE_LINK  ptl
     
-    typedef enum {
-        OE_START,
-        OE_END
-    } order_entry_t;
-    
     struct record_t {
         TREE_ENTRY(record_t)      RECORD_TREE_LINK;
-        order_entry_t type;
-        u32 pid;
-        u32 tid;
+	u32 pid, tid;
+	u32 cpu;
         u64 time;
         u64 nr;
+	u64 id;
+        enum perf_event_type type;
+    };
+    
+    struct record_mmap {
+        struct record_t header;
+	u64 start;
+	u64 len;
+	u64 pgoff;
+	char filename[PATH_MAX];
+    };
+    
+    struct record_comm {
+        struct record_t header;
+	char comm[16];
+    };
+    
+    struct record_fork {
+        struct record_t header;
+	u32 ppid;
+	u32 ptid;
+    };
+    
+    struct record_sample {
+        struct record_t header;
+	u64 ip;
+	u64 period;
     };
     
     typedef TREE_HEAD(_OrderTree, record_t) record_order_tree_t;
     
     record_order_tree_t init_record_order();
-    void add_record_order( record_order_tree_t *tree, u32 pid, u32 tid, u64 time, u64 nr, order_entry_t type );
+//    bool add_event( record_order_tree_t *tree, u64 ev_nr, const union perf_event *evt );
+    bool add_record_order( record_order_tree_t *tree, struct record_t *rec );
     void iterate_order( record_order_tree_t *tree, void (*callback)(struct record_t *proc, void *data), void *data );
     
 #ifdef	__cplusplus
