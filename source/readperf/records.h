@@ -57,7 +57,6 @@ extern "C" {
     typedef TREE_HEAD(_OrderTree, record_t) record_order_tree_t;
     
     record_order_tree_t init_record_order();
-//    bool add_event( record_order_tree_t *tree, u64 ev_nr, const union perf_event *evt );
     bool add_record_order( record_order_tree_t *tree, struct record_t *rec );
     void iterate_order( record_order_tree_t *tree, void (*callback)(struct record_t *proc, void *data), void *data );
     

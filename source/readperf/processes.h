@@ -42,6 +42,7 @@ extern "C" {
     bool remove_record( record_tree_t *tree, struct process* proc );
     
     struct process* find_record( record_tree_t *tree, u32 pid );
+    struct rmmap* find_mmap( struct process* proc, u64 addr );
     
     void print_record_header( FILE* fid );
     void print_record( struct process *proc, FILE* fid );

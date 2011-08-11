@@ -3,8 +3,6 @@
 #include    <string.h>
 #include    "errhandler.h"
 
-#define NR_MAGIC_HYSTERESE    5
-
 TREE_DEFINE(process, RECORD_TREE_LINK);
 
 static int compare(struct process *lhs, struct process *rhs) {
@@ -13,13 +11,7 @@ static int compare(struct process *lhs, struct process *rhs) {
     } else if( lhs->pid < rhs->pid ){
         return  -1;
     } else {
-/*        if( lhs->tid > rhs->tid ){
-            return  1;
-        } else if( lhs->tid < rhs->tid ){
-            return  -1;
-        } else {*/
-            return 0;
-//        }
+        return 0;
     }
 }
 
@@ -68,6 +60,16 @@ void print_records( record_tree_t *tree, FILE* fid ){
 
 void iterate_records( record_tree_t *tree, void (*callback)(struct process *proc, void *data), void *data ){
     TREE_FORWARD_APPLY( tree, process, RECORD_TREE_LINK, callback, data);
+};
+
+struct rmmap* find_mmap( struct process* proc, u64 addr ){
+    struct rmmap *itr;
+    for( itr = proc->mmaps; itr != NULL; itr = itr->next ){
+        if( (addr >= itr->start) && (addr <= itr->end) ){
+            return itr;
+        }
+    }
+    return NULL;
 };
 
 struct process* find_record( record_tree_t *tree, u32 pid ){

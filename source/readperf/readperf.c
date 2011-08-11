@@ -13,17 +13,9 @@
 #include  "session.h"
 #include    "errhandler.h"
 #include    "evtprint.h"
-#include    "memorymap.h"
 #include    "funcstat.h"
 #include    "records.h"
 #include    "processes.h"
-
-static u32 sample_fail = 0;
-static u32 mmap_fail = 0;
-static u32 comm_fail = 0;
-
-
-#define     MAGIC_ACCESS_DISTANCE   100
 
 #define SEP ","
 static int count[PERF_RECORD_MAX];
@@ -79,35 +71,15 @@ static bool decodeSample( struct record_sample *evt ) {
     proc->samples++;
     proc->period += evt->period;
     
-    /*    struct perf_sample  sample;
-     * memset( &sample, 0, sizeof(sample) );
-     * if( perf_event__parse_sample( evt, get_sampling_type(), true, &sample ) < 0 ){
-     * set_last_error( ERR_DECODE_SAMPLE, NULL );
-     * return false;
-     * }*/
+    struct rmmap* mmap = find_mmap( proc, evt->ip );
+    trymsg( mmap != NULL, ERR_ENTRY_NOT_FOUND, __func__ );
+
+    struct func_dir *entry = force_entry( evt->ip, mmap->filename );
+    trymsg( entry != NULL, ERR_NOT_YET_DEFINED, __func__ );
     
-    /*    if( (get_sampling_type() & (PERF_SAMPLE_TID | PERF_SAMPLE_TIME)) == (PERF_SAMPLE_TID | PERF_SAMPLE_TIME) ){
-     * struct process* run = find_process( &procOrder, sample.pid, sample.tid, sample.time, ev_nr );
-     *
-     * if( run != NULL ){
-     * run->samples++;
-     * run->period += sample.period;
-     * } else {
-     * sample_fail++;
-     * }
-     * }*/
+    entry->samples++;
+    entry->period += evt->period;
     
-    /*    struct event_type_entry* entry = get_entry( sample.id );
-     * try( entry != NULL );
-     * entry->count++;
-     *
-     * if( (get_sampling_type() & (PERF_SAMPLE_TID | PERF_SAMPLE_PERIOD | PERF_SAMPLE_IP)) == (PERF_SAMPLE_TID | PERF_SAMPLE_PERIOD | PERF_SAMPLE_IP) ){
-     * struct mmap_entry *entry = mm_get_entry(sample.pid, sample.tid, sample.ip);
-     * entry->samples++;
-     * entry->period += sample.period;
-     * }*/
-    
-//    printSample( sample_fid, ev_nr, &sample, get_sampling_type(), SEP );
     log_overview_i( evt->header.nr, PERF_RECORD_SAMPLE, evt->header.pid, evt->header.tid, evt->header.time, evt->period );
     
     return true;
@@ -151,10 +123,12 @@ static bool decodeComm( struct record_comm* evt ) {
 static bool decodeFork( struct record_fork *evt ) {
     struct process* proc = find_record( &recTree, evt->header.pid );
     if( proc == NULL ){
+        // if it is a thread, throw an error
+        trymsg( evt->header.pid == evt->header.tid, ERR_PROC_NOT_FOUND, __func__ );
         proc = create_record( &recTree, evt->header.pid );
         try( proc != NULL );
     } else {
-        // check if it is only a thread
+        // if it is not a thread, throw an error
         trymsg( evt->header.pid != evt->header.tid, ERR_PROC_ALREADY_EXISTS, __func__ );
     }
     
@@ -276,6 +250,7 @@ static bool readEvents() {
 }
 
 void handleRecord(struct record_t *proc, void *data){
+    (void)data;
     switch( proc->type ){
         case PERF_RECORD_COMM:{
             decodeComm( (struct record_comm*)proc );
@@ -321,6 +296,12 @@ int main( int argc, char **argv ) {
     memset( count, 0, sizeof(count) );
     
     if( !start_session( fd ) ){
+        print_last_error();
+        return -1;
+    }
+    
+    if( (get_sampling_type() & (PERF_SAMPLE_TID | PERF_SAMPLE_PERIOD | PERF_SAMPLE_IP)) != (PERF_SAMPLE_TID | PERF_SAMPLE_PERIOD | PERF_SAMPLE_IP) ){
+        set_last_error( ERR_NOT_YET_DEFINED, "not enough information in file" );
         print_last_error();
         return -1;
     }
@@ -374,16 +355,11 @@ int main( int argc, char **argv ) {
     printf( "  unknown: %i\n", count[0] );
     printf( "\n" );
     
-//    print_records( &procOrder, stdout );
+    FILE *res  = fopen( "results.csv", "w+" );
+    func_print_detailed( res );
+    fclose( res );
     
-    printf( "sample_fail: %u\n", sample_fail );
-    printf( "mmap_fail: %u\n", mmap_fail );
-    printf( "comm_fail: %u\n", comm_fail );
-    
-    /*    fprintf( stdout, "-- activeTree tree --\n" );
-     * print_processes( &activeTree, stdout );
-     * fprintf( stdout, "-- dead tree --\n" );
-     * print_processes( &deadTree, stdout );*/
+    func_print_overview( stdout );
     
     return 0;
 }

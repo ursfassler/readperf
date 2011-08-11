@@ -12,7 +12,7 @@ struct func_dir* func_error(){
     return  &error;
 };
 
-void func_stat_print( FILE* fid ){
+void func_print_overview( FILE* fid ){
     u64 sum = error.period;
     
     struct func_dir *itr;
@@ -28,7 +28,7 @@ void func_stat_print( FILE* fid ){
     
 }
 
-void func_print( FILE* fid ){
+void func_print_detailed( FILE* fid ){
     fprintf( fid, "period,samples,filename,function\n" );
     fprintf( fid, "%llu,%llu,\"%s\",\"%s\"\n", error.period, error.samples, error.source_file, error.source_func );
     struct func_dir *itr;
@@ -75,6 +75,8 @@ static bool get_func( u64 addr, const char *bin_name, char **source_file, char *
     char tmp[2048];
     
     trysys( snprintf( cmd, sizeof(cmd), "addr2line -f -e %s %llx", bin_name, addr ) > 0 );
+    
+//    printf( "%s\n", cmd );
     
     FILE *output = popen(cmd, "r");
 
