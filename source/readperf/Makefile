@@ -4,36 +4,33 @@ CFLAGS=-g -Wall -Wextra -Werror -xc++
 #-pedantic
 OBJFLAGS=-c
 
-readperf: readperf.o origperf.o evtypes.o session.o errhandler.o evtprint.o funcstat.o processes.o records.o
+readperf: readperf.o origperf.o session.o errhandler.o funcstat.o processes.o records.o processPrinter.o
 	$(CC) $^ -o $@
 
 readperf.o: readperf.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-origperf.o: origperf.c
+errhandler.o: util/errhandler.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-evtypes.o: evtypes.c
+origperf.o: util/origperf.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-session.o: session.c
+session.o: perffile/session.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-errhandler.o: errhandler.c
+processes.o: perffile/processes.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-evtprint.o: evtprint.c
+processPrinter.o: perffile/processPrinter.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-funcstat.o: funcstat.c
+records.o: perffile/records.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-processes.o: processes.c
-	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
-
-records.o: records.c
+funcstat.o: decode/funcstat.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
 clean:
-	rm -f readperf.o origperf.o evtypes.o session.o errhandler.o evtprint.o memorymap.o funcstat.o processes.o records.o
+	rm -f *.o
 

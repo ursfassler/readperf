@@ -14,8 +14,8 @@ extern "C" {
     
     
 #include    <stdio.h>
-#include    "origperf.h"
-#include    "tree.h"
+#include    "../util/origperf.h"
+#include    "../util/tree.h"
     
 #define RECORD_TREE_LINK  ptl
     

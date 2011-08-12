@@ -1,35 +1,24 @@
-#include  <stdio.h>
-#include  <linux/types.h>
-#include  <linux/perf_event.h>
-#include  <unistd.h>
-#include  <sys/types.h>
-#include  <sys/stat.h>
-#include  <fcntl.h>
-#include  <string.h>
+#include    <stdio.h>
+#include    <linux/types.h>
+#include    <linux/perf_event.h>
+#include    <unistd.h>
+#include    <sys/types.h>
+#include    <sys/stat.h>
+#include    <fcntl.h>
+#include    <string.h>
 #include    <stdlib.h>
-#include  "types.h"
-#include  "origperf.h"
-#include  "evtypes.h"
-#include  "session.h"
-#include    "errhandler.h"
-#include    "evtprint.h"
-#include    "funcstat.h"
-#include    "records.h"
-#include    "processes.h"
+#include    "util/types.h"
+#include    "util/origperf.h"
+#include    "perffile/session.h"
+#include    "util/errhandler.h"
+#include    "decode/funcstat.h"
+#include    "perffile/records.h"
+#include    "perffile/processes.h"
+#include    "perffile/processPrinter.h"
 
 #define SEP ","
 static int count[PERF_RECORD_MAX];
 
-#define SAMPLE_LOG_NAME "sample.csv"
-static FILE *sample_fid = NULL;
-#define MMAP_LOG_NAME   "mmap.csv"
-static FILE *mmap_file = NULL;
-#define COMM_LOG_NAME   "comm.csv"
-static FILE *comm_file = NULL;
-#define FORK_LOG_NAME   "fork.csv"
-static FILE *fork_file = NULL;
-#define EXIT_LOG_NAME   "exit.csv"
-static FILE *exit_file = NULL;
 #define OVERVIEW_LOG_NAME   "overview.csv"
 static FILE *overview_file = NULL;
 
@@ -41,7 +30,7 @@ static FILE *summary_file = NULL;
 #define FUNC_LOG_NAME   "func.csv"
 
 record_order_tree_t orderTree;
-record_tree_t recTree;
+process_tree_t recTree;
 
 static const char *NAMES[] = { NULL, "MMAP", "LOST", "COMM", "EXIT", "THROTTLE", "UNTHROTTLE", "FORK", "READ", "SAMPLE" };
 
@@ -65,7 +54,7 @@ static void log_overview( u64 ev_nr, enum perf_event_type type, u32 pid, u32 tid
 }
 
 static bool decodeSample( struct record_sample *evt ) {
-    struct process* proc = find_record( &recTree, evt->header.pid );
+    struct process* proc = find_process( &recTree, evt->header.pid );
     trymsg( proc != NULL, ERR_ENTRY_NOT_FOUND, __func__ );
     
     proc->samples++;
@@ -73,7 +62,7 @@ static bool decodeSample( struct record_sample *evt ) {
     
     struct rmmap* mmap = find_mmap( proc, evt->ip );
     trymsg( mmap != NULL, ERR_ENTRY_NOT_FOUND, __func__ );
-
+    
     struct func_dir *entry = force_entry( evt->ip, mmap->filename );
     trymsg( entry != NULL, ERR_NOT_YET_DEFINED, __func__ );
     
@@ -86,10 +75,10 @@ static bool decodeSample( struct record_sample *evt ) {
 }
 
 static bool decodeMmap( struct record_mmap *evt ) {
-    struct process* proc = find_record( &recTree, evt->header.pid );
+    struct process* proc = find_process( &recTree, evt->header.pid );
     if( proc == NULL ){
         trymsg( evt->header.time == 0, ERR_NOT_YET_DEFINED, __func__ );
-        proc = create_record( &recTree, evt->header.pid );
+        proc = create_process( &recTree, evt->header.pid );
         try( proc != NULL );
     }
     
@@ -107,10 +96,10 @@ static bool decodeMmap( struct record_mmap *evt ) {
 }
 
 static bool decodeComm( struct record_comm* evt ) {
-    struct process* proc = find_record( &recTree, evt->header.pid );
+    struct process* proc = find_process( &recTree, evt->header.pid );
     if( proc == NULL ){
         trymsg( evt->header.time == 0, ERR_NOT_YET_DEFINED, __func__ );
-        proc = create_record( &recTree, evt->header.pid );
+        proc = create_process( &recTree, evt->header.pid );
         try( proc != NULL );
     }
     
@@ -121,11 +110,11 @@ static bool decodeComm( struct record_comm* evt ) {
 }
 
 static bool decodeFork( struct record_fork *evt ) {
-    struct process* proc = find_record( &recTree, evt->header.pid );
+    struct process* proc = find_process( &recTree, evt->header.pid );
     if( proc == NULL ){
         // if it is a thread, throw an error
         trymsg( evt->header.pid == evt->header.tid, ERR_PROC_NOT_FOUND, __func__ );
-        proc = create_record( &recTree, evt->header.pid );
+        proc = create_process( &recTree, evt->header.pid );
         try( proc != NULL );
     } else {
         // if it is not a thread, throw an error
@@ -139,14 +128,14 @@ static bool decodeFork( struct record_fork *evt ) {
 }
 
 static bool decodeExit( struct record_fork *evt ) {
-    struct process* proc = find_record( &recTree, evt->header.pid );
+    struct process* proc = find_process( &recTree, evt->header.pid );
     trymsg( proc != NULL, ERR_ENTRY_NOT_FOUND, __func__ );
     
     proc->exit_time = evt->header.time;
     
-    try( remove_record( &recTree, proc ) );
+    try( remove_process( &recTree, proc ) );
     
-    print_record( proc, summary_file );
+    print_process( proc, summary_file );
     free( proc );
     
     log_overview( evt->header.nr, PERF_RECORD_EXIT, evt->header.pid, evt->header.tid, evt->header.time );
@@ -306,27 +295,9 @@ int main( int argc, char **argv ) {
         return -1;
     }
     
-    printf( "Sampling types: " );
-    printSampleFormat( get_sampling_type() );
-    printf( "\n" );
-    
     overview_file  = fopen( OVERVIEW_LOG_NAME, "w+" );
     fprintf( overview_file, "nr%stype%spid%stid%stime%sinfo\n", SEP, SEP, SEP, SEP, SEP );
     
-    mmap_file  = fopen( MMAP_LOG_NAME, "w+" );
-    printMmapHeader( mmap_file, SEP );
-    
-    comm_file  = fopen( COMM_LOG_NAME, "w+" );
-    printCommHeader( comm_file, SEP );
-    
-    fork_file  = fopen( FORK_LOG_NAME, "w+" );
-    printForkHeader( fork_file, SEP );
-    
-    exit_file  = fopen( EXIT_LOG_NAME, "w+" );
-    printExitHeader( exit_file, SEP );
-    
-    sample_fid  = fopen( SAMPLE_LOG_NAME, "w+" );
-    printSampleHeader( sample_fid, get_sampling_type(), SEP );
     
     if( !readEvents() ){
         print_last_error();
@@ -334,17 +305,12 @@ int main( int argc, char **argv ) {
     }
     
     summary_file  = fopen( SUMMARY_LOG_NAME, "w+" );
-    print_record_header( summary_file );
-    recTree = init_records();
+    print_process_header( summary_file );
+    recTree = init_processes();
     iterate_order( &orderTree, handleRecord, NULL );
-    print_records( &recTree, summary_file );
+    print_processes( &recTree, summary_file );
     fclose( summary_file );
     
-    fclose( sample_fid );
-    fclose( exit_file );
-    fclose( fork_file );
-    fclose( comm_file );
-    fclose( mmap_file );
     fclose( overview_file );
     
     printf( "found events\n" );

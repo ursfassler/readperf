@@ -3,7 +3,7 @@
 #include    <string.h>
 #include    <stdlib.h>
 #include    <unistd.h>
-#include    "errhandler.h"
+#include    "../util/errhandler.h"
 
 static struct func_dir* head = NULL;
 static struct func_dir error = { NULL, 0, NULL, NULL, NULL, 0, 0 };

@@ -13,7 +13,7 @@ extern "C" {
 #endif
     
 #include    <linux/perf_event.h>
-#include    "origperf.h"
+#include    "../util/origperf.h"
     
 #define HEADER_FEAT_BITS			256
     
@@ -49,7 +49,6 @@ extern "C" {
     struct event_type_entry* get_entry_by_index( unsigned int index );
     struct event_type_entry* get_entry( u64 id );
     bool start_session( int fd );
-    bool goto_start_data();
     bool has_more_events();
     bool next_event_header( struct perf_event_header* header );
     bool read_event_data( union perf_event *evt );

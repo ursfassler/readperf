@@ -1,7 +1,7 @@
 #include    "records.h"
 #include    <stdlib.h>
 #include    <string.h>
-#include    "errhandler.h"
+#include    "../util/errhandler.h"
 #include    "session.h"
 
 TREE_DEFINE(record_t, RECORD_TREE_LINK);

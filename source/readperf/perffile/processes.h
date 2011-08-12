@@ -12,9 +12,8 @@
 extern "C" {
 #endif
     
-#include    <stdio.h>
-#include    "origperf.h"
-#include    "tree.h"
+#include    "../util/origperf.h"
+#include    "../util/tree.h"
     
     struct rmmap {
         struct rmmap *next;
@@ -35,19 +34,16 @@ extern "C" {
         struct rmmap *mmaps;
     };
     
-    typedef TREE_HEAD(_RecordTree, process) record_tree_t;
+    typedef TREE_HEAD(_RecordTree, process) process_tree_t;
     
-    record_tree_t init_records();
-    struct process* create_record( record_tree_t *tree, u32 pid );
-    bool remove_record( record_tree_t *tree, struct process* proc );
+    process_tree_t init_processes();
+    struct process* create_process( process_tree_t *tree, u32 pid );
+    bool remove_process( process_tree_t *tree, struct process* proc );
     
-    struct process* find_record( record_tree_t *tree, u32 pid );
+    struct process* find_process( process_tree_t *tree, u32 pid );
     struct rmmap* find_mmap( struct process* proc, u64 addr );
     
-    void print_record_header( FILE* fid );
-    void print_record( struct process *proc, FILE* fid );
-    void print_records( record_tree_t *tree, FILE* fid );
-    void iterate_records( record_tree_t *tree, void (*callback)(struct process *proc, void *data), void *data );
+    void iterate_processes( process_tree_t *tree, void (*callback)(struct process *proc, void *data), void *data );
     
 
 #ifdef	__cplusplus

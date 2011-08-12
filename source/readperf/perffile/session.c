@@ -3,7 +3,7 @@
 #include    <string.h>
 #include    <stdio.h>
 #include    "session.h"
-#include    "errhandler.h"
+#include    "../util/errhandler.h"
 
 struct event_id_link {
     u64    id;
@@ -198,11 +198,6 @@ bool skip_event_data( struct perf_event_header* header ){
     return true;
 };
 
-bool goto_start_data(){
-    trysys( lseek( i_fd, fheader.data.offset, SEEK_SET ) >= 0 );
-    return true;
-}
-
 bool start_session( int fd ){
     i_fd = fd;
     try( readn( i_fd, &fheader, sizeof(fheader) ) );
@@ -222,7 +217,8 @@ bool start_session( int fd ){
     try( readAttr() );
     try( readTypes() );
     
-    return goto_start_data();
+    trysys( lseek( i_fd, fheader.data.offset, SEEK_SET ) >= 0 );
+    return true;
 }
 
 unsigned int get_entry_count(){
