@@ -1,8 +1,6 @@
-/*
- * File:   records.h
- * Author: urs
- *
- * Created on August 8, 2011, 9:48 AM
+/**
+ * @file
+ * Stores the different records sorted by timestamp.
  */
 
 #ifndef _RECORDS_H

@@ -1,8 +1,6 @@
-/*
- * File:   session.h
- * Author: urs
- *
- * Created on July 25, 2011, 2:34 PM
+/**
+ * @file
+ * Routines for perf file reading.
  */
 
 #ifndef _SESSION_H

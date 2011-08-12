@@ -1,8 +1,6 @@
-/*
- * File:   processes.h
- * Author: urs
- *
- * Created on August 5, 2011, 9:11 AM
+/**
+ * @file
+ * Stores processes and related information like memory maps.
  */
 
 #ifndef _PROCESSES_H
