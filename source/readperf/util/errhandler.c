@@ -18,7 +18,7 @@ static const char *ERROR_TEXT[ERR_COUNT] = {
     "execution of external program failed",
     "process already exists",
     "process not found",
-    "EXIT-hack does not work"
+    "memory range not found"
 };
 
 /**

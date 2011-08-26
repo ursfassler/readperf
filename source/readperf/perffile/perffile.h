@@ -15,7 +15,6 @@ extern "C" {
 #include    "records.h"
     
     extern record_order_tree_t orderTree;
-    extern int count[PERF_RECORD_MAX];
     
     bool read_perf_file( int fd );
     

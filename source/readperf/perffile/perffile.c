@@ -5,9 +5,9 @@
 #include    "session.h"
 #include    "../util/origperf.h"
 #include    "../util/errhandler.h"
+#include    "overviewPrinter.h"
 
 record_order_tree_t orderTree;
-int count[PERF_RECORD_MAX];
 
 static struct record_t* create_mmap_msg( struct mmap_event *evt ){
     struct record_mmap* rec = (struct record_mmap*)malloc( sizeof(*rec) );
@@ -61,11 +61,7 @@ static bool readEvents() {
     while( has_more_events() ){
         union perf_event evt;
         try( next_event_header( &evt.header ) );
-        if( (evt.header.type > 0) && (evt.header.type < PERF_RECORD_MAX) ){
-            count[evt.header.type]++;
-        } else {
-            count[0]++;
-        }
+        log_type( evt.header.type );
         switch( evt.header.type ){
             case PERF_RECORD_MMAP:
             case PERF_RECORD_COMM:

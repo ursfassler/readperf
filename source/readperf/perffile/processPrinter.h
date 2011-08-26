@@ -13,9 +13,9 @@ extern "C" {
 #include    <stdio.h>
 #include    "processes.h"
     
-    void print_process_header( FILE* fid );
-    void print_process( struct process *proc, FILE* fid );
-    void print_processes( process_tree_t *tree, FILE* fid );
+    void print_process_init( FILE* fid );
+    void print_process( struct process *proc );
+    void print_processes( process_tree_t *tree );
     
     
 #ifdef	__cplusplus

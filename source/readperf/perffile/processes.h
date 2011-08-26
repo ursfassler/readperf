@@ -13,6 +13,8 @@ extern "C" {
 #include    "../util/origperf.h"
 #include    "../util/tree.h"
     
+    #define COMMON_PROC     ((u32)-1)
+    
     struct rmmap {
         struct rmmap *next;
 	u64 start;

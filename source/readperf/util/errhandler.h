@@ -12,6 +12,9 @@
 extern "C" {
 #endif
 
+#define try_cmd( val ) {if( !(val) ){ goto _err_handler; }}
+#define try_except  _err_handler:
+    
 /**
  * If the parameter passed to this macro is false, then the function is aborted
  * and returns false. No error will be reported.
@@ -48,7 +51,7 @@ extern "C" {
         EER_EXEC_OF_EXTERNAL_PRG_FAILED,
         ERR_PROC_ALREADY_EXISTS,
         ERR_PROC_NOT_FOUND,
-        ERR_EXIT_HACK_DOES_NOT_WORK,
+        ERR_MEMORY_RANGE_NOT_FOUND,
         
         ERR_COUNT
     };

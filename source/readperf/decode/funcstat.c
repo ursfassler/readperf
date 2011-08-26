@@ -4,6 +4,7 @@
 #include    <stdlib.h>
 #include    <unistd.h>
 #include    "../util/errhandler.h"
+#include    "addr2line.h"
 
 static struct func_dir* head = NULL;
 static struct func_dir error = { NULL, 0, NULL, NULL, NULL, 0, 0 };
@@ -70,39 +71,7 @@ static struct func_dir* add_entry(){
     return head;
 };
 
-static bool get_func( u64 addr, const char *bin_name, char **source_file, char **source_func ){
-    char cmd[4096];
-    char tmp[2048];
-    
-    trysys( snprintf( cmd, sizeof(cmd), "addr2line -f -e %s %llx", bin_name, addr ) > 0 );
-    
-//    printf( "%s\n", cmd );
-    
-    FILE *output = popen(cmd, "r");
-
-    trysys( output != NULL );
-
-    trymsg( fscanf( output, "%s\n", tmp ) == 1, EER_EXEC_OF_EXTERNAL_PRG_FAILED, strdup(cmd) );
-    *source_func = strdup( tmp );
-    trysys( source_func != NULL );
-    
-    trymsg( fscanf( output, "%s\n", tmp ) == 1, EER_EXEC_OF_EXTERNAL_PRG_FAILED, strdup(cmd) );
-    unsigned int i;
-    for( i = 0; i < sizeof(tmp)/sizeof(tmp[0]); i++ ){
-        if( tmp[i] == ':' ){
-            tmp[i] = '\0';
-            break;
-        }
-    }
-    *source_file = strdup( tmp );
-    trysys( source_file != NULL );
-    
-    pclose( output );
-    
-    return true;
-}
-
-struct func_dir* force_entry( u64 addr, const char *bin_name ){
+struct func_dir* force_entry( u64 addr, char *bin_name ){
     struct func_dir *entry = NULL;
     entry = find_entry_addr( addr, bin_name );
     if( entry == NULL ){

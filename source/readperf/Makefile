@@ -4,7 +4,7 @@ CFLAGS=-g -Wall -Wextra
 #-pedantic
 OBJFLAGS=-c
 
-readperf: readperf.o session.o errhandler.o funcstat.o processes.o records.o processPrinter.o perffile.o origperf.o
+readperf: readperf.o session.o errhandler.o funcstat.o processes.o records.o processPrinter.o perffile.o origperf.o buildstat.o overviewPrinter.o addr2line.o
 	$(CC) $^ -o $@
 
 readperf.o: readperf.c
@@ -32,6 +32,15 @@ records.o: perffile/records.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
 funcstat.o: decode/funcstat.c
+	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
+
+buildstat.o: decode/buildstat.c
+	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
+
+overviewPrinter.o: perffile/overviewPrinter.c
+	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
+
+addr2line.o: decode/addr2line.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
 clean:

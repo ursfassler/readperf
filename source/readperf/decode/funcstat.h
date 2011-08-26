@@ -30,7 +30,7 @@ extern "C" {
     struct func_dir* func_error();
     void func_print_overview( FILE* fid );
     void func_print_detailed( FILE* fid );
-    struct func_dir* force_entry( u64 addr, const char *bin_name );
+    struct func_dir* force_entry( u64 addr, char *bin_name );
     
 #ifdef	__cplusplus
 }
