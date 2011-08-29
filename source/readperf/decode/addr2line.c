@@ -7,6 +7,9 @@
 #include    <stdio.h>
 #include    <string.h>
 
+#define try_cmd( val ) {if( !(val) ){ goto _err_handler; }}
+#define try_except  _err_handler:
+
 
 int exec_redirect( const char *path, char *const args[], int new_in, int new_out, int new_err ) {
     
@@ -60,8 +63,8 @@ bool get_func( u64 addr, char *bin_name, char **source_file, char **source_func 
     try_cmd( pipe( pstdout ) == 0 );
     try_cmd( pipe( pstderr ) == 0 );
     
-    try_cmd( exec_redirect( app, args, pstdin[0], pstdout[1], pstderr[1] ) == 0 );
-    //   if( exec_redirect( app, args, pstdin[0], pstdout[1], STDERR_FILENO ) == 0 ){
+    if( exec_redirect( app, args, pstdin[0], pstdout[1], pstderr[1] ) == 0 ){
+        //   if( exec_redirect( app, args, pstdin[0], pstdout[1], STDERR_FILENO ) == 0 ){
         char tmp[1024];
         FILE *output = fdopen( pstdout[0], "r" );
         try_cmd( output != NULL );
@@ -81,18 +84,16 @@ bool get_func( u64 addr, char *bin_name, char **source_file, char **source_func 
         try_cmd( source_file != NULL );
         
         fclose( output );
-/*    } else {
+        
+        close( pstdin[0] );
+        close( pstdin[1] );
+        close( pstdout[1] );
         close( pstdout[0] );
-    }*/
-    
-    close( pstdin[0] );
-    close( pstdin[1] );
-    close( pstdout[1] );
-    close( pstdout[0] );
-    close( pstderr[1] );
-    close( pstderr[0] );
-    
-    return true;
+        close( pstderr[1] );
+        close( pstderr[0] );
+        
+        return true;
+    }
     
     try_except;
     

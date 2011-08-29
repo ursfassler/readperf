@@ -12,9 +12,6 @@
 extern "C" {
 #endif
 
-#define try_cmd( val ) {if( !(val) ){ goto _err_handler; }}
-#define try_except  _err_handler:
-    
 /**
  * If the parameter passed to this macro is false, then the function is aborted
  * and returns false. No error will be reported.

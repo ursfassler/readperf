@@ -1,10 +1,10 @@
 
-CFLAGS=-g -Wall -Wextra
-#CFLAGS=-g -Wall -Wextra -Werror -xc++ -o3
+#CFLAGS=-g -Wall -Wextra
+CFLAGS=-g -Wall -Wextra -Werror -Wno-write-strings -xc++ -o3
 #-pedantic
 OBJFLAGS=-c
 
-readperf: readperf.o session.o errhandler.o funcstat.o processes.o records.o processPrinter.o perffile.o origperf.o buildstat.o overviewPrinter.o addr2line.o
+readperf: readperf.o session.o errhandler.o funcstat.o processes.o records.o processPrinter.o origperf.o perffile.o buildstat.o overviewPrinter.o addr2line.o
 	$(CC) $^ -o $@
 
 readperf.o: readperf.c
@@ -22,10 +22,10 @@ perffile.o: perffile/perffile.c
 session.o: perffile/session.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-processes.o: perffile/processes.c
+processes.o: decode/processes.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
-processPrinter.o: perffile/processPrinter.c
+processPrinter.o: decode/processPrinter.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 
 records.o: perffile/records.c

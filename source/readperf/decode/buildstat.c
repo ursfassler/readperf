@@ -1,7 +1,7 @@
 #include    "buildstat.h"
 #include    "../util/errhandler.h"
 #include    "funcstat.h"
-#include    "../perffile/processPrinter.h"
+#include    "processPrinter.h"
 #include    "../perffile/overviewPrinter.h"
 #include    <stdlib.h>
 #include    <string.h>
@@ -39,7 +39,19 @@ static bool decodeSample( struct record_sample *evt ) {
         }
     }
     
-    u64 addr = evt->ip - mmap->start;
+    if( (mmap->start == 4194304) && (evt->header.pid == 3101) ){
+        printf( "hallo\n" );
+    }
+    
+    u64 addr;
+    
+    // this is a bit hacky; I'm not sure if it is correct but it seems to work
+    if( evt->ip >= proc->vdso ){
+        addr = evt->ip - mmap->start;
+    } else {
+        addr = evt->ip;
+    }
+    
     struct func_dir *entry = force_entry( addr, mmap->filename );
     if( entry == NULL ){
         entry = func_error();
@@ -62,20 +74,25 @@ static bool decodeMmap( struct record_mmap *evt ) {
         try( proc != NULL );
     }
     
-    struct rmmap *old = proc->mmaps;
-    proc->mmaps = (struct rmmap *)malloc( sizeof(*proc->mmaps) );
-    trysys( proc->mmaps != NULL );
-    proc->mmaps->next = old;
-    proc->mmaps->start = evt->start;
-    proc->mmaps->end = evt->start + evt->len - 1;
-    proc->mmaps->pgoff = evt->pgoff;
-    memcpy( proc->mmaps->filename, evt->filename, sizeof(proc->mmaps->filename) );
+    if( memcmp( evt->filename, "[vdso]", 6 ) == 0 ){
+        trymsg( proc->vdso == 0, ERR_NOT_YET_DEFINED, "2 vdso mmap records found" );
+        proc->vdso = evt->pgoff;
+    } else {
+        struct rmmap *old = proc->mmaps;
+        proc->mmaps = (struct rmmap *)malloc( sizeof(*proc->mmaps) );
+        trysys( proc->mmaps != NULL );
+        proc->mmaps->next = old;
+        proc->mmaps->start = evt->start;
+        proc->mmaps->end = evt->start + evt->len - 1;
+        proc->mmaps->pgoff = evt->pgoff;
+        memcpy( proc->mmaps->filename, evt->filename, sizeof(proc->mmaps->filename) );
+    }
     
     return true;
 }
 
 static bool decodeComm( struct record_comm* evt ) {
-    log_overview_s( evt->header.nr, PERF_RECORD_COMM, evt->header.pid, evt->header.tid, 0, evt->comm );
+    log_overview_s( evt->header.nr, PERF_RECORD_COMM, evt->header.pid, evt->header.tid, evt->header.time, evt->comm );
     
     struct process* proc = find_process( &recTree, evt->header.pid );
     if( proc == NULL ){
@@ -115,9 +132,9 @@ static bool decodeExit( struct record_fork *evt ) {
         struct process* proc = find_process( &recTree, evt->header.pid );
         if( proc != NULL ){     // exit occurs 2 times, don't throw an error
             proc->exit_time = evt->header.time;
-
+            
             try( remove_process( &recTree, proc ) );
-
+            
             print_process( proc );
             free( proc );
         }

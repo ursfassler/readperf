@@ -11,7 +11,7 @@
 #include    "util/origperf.h"
 #include    "util/errhandler.h"
 #include    "decode/funcstat.h"
-#include    "perffile/processPrinter.h"
+#include    "decode/processPrinter.h"
 #include    "perffile/perffile.h"
 #include    "perffile/records.h"
 #include    "decode/buildstat.h"
@@ -21,8 +21,8 @@
 #define OVERVIEW_LOG_NAME   "overview.csv"
 static FILE *overview_file = NULL;
 
-#define SUMMARY_LOG_NAME   "summary.csv"
-static FILE *summary_file = NULL;
+#define PROCESSES_LOG_NAME   "processes.csv"
+static FILE *processes_file = NULL;
 
 
 #define STAT_LOG_NAME   "stat.csv"
@@ -46,12 +46,12 @@ int main( int argc, char **argv ) {
         return -1;
     }
     
-    summary_file  = fopen( SUMMARY_LOG_NAME, "w+" );
-    print_process_init( summary_file );
+    processes_file  = fopen( PROCESSES_LOG_NAME, "w+" );
+    print_process_init( processes_file );
     overview_file = fopen( OVERVIEW_LOG_NAME, "w+" );
     overviewInit( overview_file );
     buildstat( &orderTree );
-    fclose( summary_file );
+    fclose( processes_file );
     
     fclose( overview_file );
     
@@ -63,7 +63,7 @@ int main( int argc, char **argv ) {
     func_print_detailed( res );
     fclose( res );
     
-    func_print_overview( stdout );
+//    func_print_overview( stdout );    // print an overview to stdout
     
     return 0;
 }

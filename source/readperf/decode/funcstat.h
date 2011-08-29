@@ -18,13 +18,14 @@ extern "C" {
     
     struct func_dir {
         struct func_dir *next;
-        u64     addr;
-        char    *bin_name;
-        char    *source_file;
-        char    *source_func;
+        u64             addr[8];        // since samples often contains the same address, we have to call addr2line less if we already have the information
+        unsigned char   addhead;
+        char            *bin_name;
+        char            *source_file;
+        char            *source_func;
         
-        u64     period;
-        u64     samples;
+        u64             period;
+        u64             samples;
     };
     
     struct func_dir* func_error();

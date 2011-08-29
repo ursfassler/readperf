@@ -7,7 +7,7 @@
 #include    "addr2line.h"
 
 static struct func_dir* head = NULL;
-static struct func_dir error = { NULL, 0, NULL, NULL, NULL, 0, 0 };
+static struct func_dir error = { NULL, {0}, 0, NULL, NULL, NULL, 0, 0 };
 
 struct func_dir* func_error(){
     return  &error;
@@ -39,10 +39,20 @@ void func_print_detailed( FILE* fid ){
     
 }
 
+static bool has_addr( struct func_dir *fdir, u64 addr ){
+    unsigned int idx;
+    for( idx = 0; idx < sizeof(fdir->addr)/sizeof(fdir->addr[0]); idx++ ){
+        if( fdir->addr[idx] == addr ){
+            return true;
+        }
+    }
+    return false;
+};
+
 static struct func_dir* find_entry_addr( u64 addr, const char *bin_name ){
     struct func_dir *itr;
     for( itr = head; itr != NULL; itr = itr->next ){
-        if( (itr->addr == addr) && (strcmp( itr->bin_name, bin_name ) == 0) ){
+        if( has_addr(itr,addr) && (strcmp( itr->bin_name, bin_name ) == 0) ){
             return itr;
         }
     }
@@ -66,6 +76,10 @@ static struct func_dir* add_entry(){
     head = (struct func_dir*)malloc( sizeof(*head) );
     if( head != NULL ){
         memset( head, 0, sizeof(*head) );
+        unsigned int idx;
+        for( idx = 0; idx < sizeof(head->addr)/sizeof(head->addr[0]); idx++ ){
+            head->addr[idx] = (u64)-1;
+        }
         head->next = old;
     }
     return head;
@@ -81,7 +95,8 @@ struct func_dir* force_entry( u64 addr, char *bin_name ){
         }
         entry = find_entry_name( func, file );
         if( entry != NULL ){
-            entry->addr = addr;     // overwrite addr
+            entry->addr[entry->addhead] = addr;     // overwrite oldest addr
+            entry->addhead = (entry->addhead + 1) % (sizeof(entry->addr)/sizeof(entry->addr[0]));
             if( strcmp( entry->source_file, file ) != 0 ){
                 return  NULL;
             }
@@ -93,7 +108,7 @@ struct func_dir* force_entry( u64 addr, char *bin_name ){
         } else {
             entry = add_entry();
             if( entry != NULL ){
-                entry->addr = addr;
+                entry->addr[0] = addr;
                 entry->bin_name = strdup( bin_name );
                 entry->source_file = file;
                 entry->source_func = func;

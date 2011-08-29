@@ -30,6 +30,7 @@ extern "C" {
         u64 exit_time;
         u64 samples;
         u64 period;
+        u64 vdso;
 	char comm[16];
         struct rmmap *mmaps;
     };

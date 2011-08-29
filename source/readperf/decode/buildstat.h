@@ -12,7 +12,7 @@
 extern "C" {
 #endif
     
-#include    "../perffile/processes.h"
+#include    "processes.h"
 #include    "../perffile/records.h"
     
     bool buildstat( record_order_tree_t *tree );

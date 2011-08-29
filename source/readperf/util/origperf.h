@@ -13,6 +13,10 @@
 #include  <unistd.h>
 #include  "types.h"
 
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
 #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 
@@ -148,6 +152,10 @@ union perf_event {
 };
 
 int perf_event__parse_sample(const union perf_event *event, u64 type, bool sample_id_all, struct perf_sample *data);
+
+#ifdef	__cplusplus
+}
+#endif
 
 #endif
 
