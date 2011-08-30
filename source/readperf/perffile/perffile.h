@@ -14,9 +14,8 @@ extern "C" {
     
 #include    "records.h"
     
-    extern record_order_tree_t orderTree;
-    
     bool read_perf_file( int fd );
+    record_order_tree_t* get_record_order_tree();
     
     
 #ifdef	__cplusplus

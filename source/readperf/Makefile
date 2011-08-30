@@ -7,6 +7,9 @@ OBJFLAGS=-c
 readperf: readperf.o session.o errhandler.o funcstat.o processes.o records.o processPrinter.o origperf.o perffile.o buildstat.o overviewPrinter.o addr2line.o
 	$(CC) $^ -o $@
 
+doc:
+	doxygen
+
 readperf.o: readperf.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) $^ -o $@
 

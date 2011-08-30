@@ -89,12 +89,12 @@ static bool readAttr() {
         eventAttr[i].config = f_attr.attr.config;
         eventAttr[i].count = 0;
         
+        if( !f_attr.attr.sample_id_all ){
+            set_last_error( ERR_NOT_YET_DEFINED, "need attr.sample_id_all" );
+            return false;
+        }
         if( i == 0 ){
             samplingType = f_attr.attr.sample_type;
-            if( !f_attr.attr.sample_id_all ){
-                set_last_error( ERR_NOT_YET_DEFINED, "need attr.sample_id_all" );
-                return false;
-            }
         } else {
             if( samplingType != f_attr.attr.sample_type ){
                 set_last_error( ERR_SAMPLES_DIFFER_IN_TYPE, NULL );

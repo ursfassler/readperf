@@ -115,3 +115,7 @@ bool read_perf_file( int fd ){
     
     return true;
 }
+
+record_order_tree_t* get_record_order_tree(){
+    return  &orderTree;
+}

@@ -50,7 +50,7 @@ int main( int argc, char **argv ) {
     print_process_init( processes_file );
     overview_file = fopen( OVERVIEW_LOG_NAME, "w+" );
     overviewInit( overview_file );
-    buildstat( &orderTree );
+    buildstat( get_record_order_tree() );
     fclose( processes_file );
     
     fclose( overview_file );
