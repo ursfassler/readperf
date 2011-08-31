@@ -1,0 +1,107 @@
+
+\usepackage[utf8]{inputenc}
+%\usepackage{ucs}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{multicol}
+\usepackage{graphicx}
+%\usepackage{hyperref}		% automatic included by beamer
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning,shapes}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{appendixnumberbeamer}
+\usepackage{pstricks}
+\usepackage{marvosym}
+\usepackage{biblatex}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{understanding the perf file format}
+%\subtitle{}
+\author{Urs F\"assler}
+\date{01.09.2011}
+\institute
+{
+  CERN Openlab
+}
+%\subject{}
+
+%\bibliographystyle{plain}
+\bibliography{../../report/literature}
+
+\usetheme{Madrid}
+\beamertemplatenavigationsymbolsempty
+
+\begin{document}
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+\setcounter{framenumber}{0}
+
+\section{Problem}
+\begin{frame}{Problem\only<handout>{ \cite{Jarp2010}}}
+\begin{itemize}
+  \item processors does not get faster
+  \item more into parallel computing
+  \item performance monitoring to find bottlenecks
+  \item understanding monitoring system $\rightarrow$ extract relevant information
+\end{itemize}
+\end{frame}
+
+\section{Process}
+\begin{frame}{Process}
+\begin{itemize}
+  \item sparse only resources
+  \item perf report reads the data file
+  \begin{itemize}
+    \item stepping through code with debugger
+    \item static analyze code
+    \item analyzing data structures
+    \item[$\Rightarrow$] Pitfall: overseen data
+  \end{itemize}
+  \item analyzing code / structures $\rightarrow$ thinking $\rightarrow$ idea $\rightarrow$ verifying
+  \begin{itemize}
+    \item write code to see if it works
+    \item compare it with perf report
+  \end{itemize}
+  \item Andrzej /$\rightarrow$ contact to other people
+\end{itemize}
+\end{frame}
+
+\section{Achievements}
+\begin{frame}{Achievements}
+\begin{itemize}
+  \item good understanding of perf data format
+  \item ''proof of concept'' application (readperf), verified against perf report
+  \begin{itemize}
+    \item only 1k lines of code (perf 34k)
+    \item no kernel code / dependencies
+    \item small dependencies
+  \end{itemize}
+  \item report as description of file format and readperf
+\end{itemize}
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}{Conclusion}
+\begin{itemize}
+  \item perf seems like historically grown
+  \begin{itemize}
+    \item[$\Rightarrow$] complex, difficult to understand
+  \end{itemize}
+  \item Open Source is good, still need time to understand the code
+  \begin{itemize}
+    \item without code it would be much harder
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\only<handout>{
+  \include{appendix}
+}
+
+\end{document}
