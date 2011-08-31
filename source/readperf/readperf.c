@@ -48,9 +48,21 @@ int main( int argc, char **argv ) {
     }
     
     if( get_entry_count() > 1 ){
-      fprintf( stderr, "only one event source is supported\n" );
+      fprintf( stderr, "more than one event source not yet supported\n" );
       return -1;
     }
+    
+    struct event_type_entry *evt = get_entry_by_index( 0 );
+    if( !evt->attr.freq ){
+      fprintf( stderr, "period mode not yet supported\n" );
+      return -1;
+    }
+    if( !evt->attr.mmap ){
+      fprintf( stderr, "need mmap entries\n" );
+      return -1;
+    }
+    
+    return 0;  //TODO: remove
     
     processes_file  = fopen( PROCESSES_LOG_NAME, "w+" );
     print_process_init( processes_file );

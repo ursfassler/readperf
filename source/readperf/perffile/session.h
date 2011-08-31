@@ -36,10 +36,8 @@ extern "C" {
     };
     
     struct event_type_entry{
-//        struct perf_event_attr attr;
-        u64   config;
+        struct perf_event_attr attr;
         char  name[MAX_EVENT_NAME];
-        u32   count;
     };
     
     u64 get_sampling_type();

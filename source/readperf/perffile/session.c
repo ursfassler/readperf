@@ -85,9 +85,9 @@ static bool readAttr() {
         pos = lseek( i_fd, 0, SEEK_CUR );
         trysys( pos >= 0 );
         
-//        eventAttr[i].attr = f_attr.attr;
-        eventAttr[i].config = f_attr.attr.config;
-        eventAttr[i].count = 0;
+        trymsg( f_attr.attr.size == sizeof( f_attr.attr ), ERR_SIZE_MISMATCH, "f_attr.config.size" );
+        
+        eventAttr[i].attr = f_attr.attr;
         
         if( !f_attr.attr.sample_id_all ){
             set_last_error( ERR_NOT_YET_DEFINED, "need attr.sample_id_all" );
@@ -113,18 +113,6 @@ static bool readAttr() {
                 try( add_link( f_id, &eventAttr[i] ) );
             }
         }
-        
-/*        printf( "idcount: %u\n", idcount );
-        printf( "idoffset: %llu\n", f_attr.ids.offset );
-        
-        printf( "type: %u\n", f_attr.attr.type );
-        printf( "size: %u\n", f_attr.attr.size );
-        printf( "config: %llu\n", f_attr.attr.config );
-        printf( "sample_type: %llu:", f_attr.attr.sample_type );
-        printSampleFormat( f_attr.attr.sample_type );
-        printf( "\n" );
-        printf( "read_format: %llu\n", f_attr.attr.read_format );
-        printf( "bp_type: %u\n", f_attr.attr.bp_type );*/
     }
     
     return true;
@@ -147,22 +135,19 @@ static bool readTypes() {
     traceInfo = (struct perf_trace_event_type *)malloc( fheader.event_types.size );
     trysys( traceInfo != NULL );
     
-//    printf( "event offset: %llu size: %llu\n", fheader.event_types.offset, fheader.event_types.size );
-//    printf( "found %i events\n", traceInfoCount );
-    
     try( readn( i_fd, traceInfo, fheader.event_types.size ) );
     
     unsigned int i, k;
     for( i = 0; i < eventAttrCount; i++ ){
         for( k = 0; k < traceInfoCount; k++ ){
-            if( eventAttr[i].config == traceInfo[k].event_id ){
+            if( eventAttr[i].attr.config == traceInfo[k].event_id ){
                 memcpy( &eventAttr[i].name, traceInfo[k].name, sizeof(eventAttr[i].name) );
                 break;
             }
         }
         if( k == traceInfoCount ){
             char buf[256];
-            snprintf( buf, sizeof(buf), "%llu", eventAttr[i].config );
+            snprintf( buf, sizeof(buf), "%llu", eventAttr[i].attr.config );
             set_last_error( ERR_TRACE_INFO_NOT_FOUND_FOR_CONFIG, strdup(buf) );
             return false;
         }
