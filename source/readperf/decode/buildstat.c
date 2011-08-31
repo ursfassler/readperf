@@ -39,10 +39,6 @@ static bool decodeSample( struct record_sample *evt ) {
         }
     }
     
-    if( (mmap->start == 4194304) && (evt->header.pid == 3101) ){
-        printf( "hallo\n" );
-    }
-    
     u64 addr;
     
     // this is a bit hacky; I'm not sure if it is correct but it seems to work

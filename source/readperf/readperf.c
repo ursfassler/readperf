@@ -14,6 +14,7 @@
 #include    "decode/processPrinter.h"
 #include    "perffile/perffile.h"
 #include    "perffile/records.h"
+#include    "perffile/session.h"
 #include    "decode/buildstat.h"
 #include    "perffile/overviewPrinter.h"
 
@@ -44,6 +45,11 @@ int main( int argc, char **argv ) {
     if( !read_perf_file( fd ) ){
         print_last_error();
         return -1;
+    }
+    
+    if( get_entry_count() > 1 ){
+      fprintf( stderr, "only one event source is supported\n" );
+      return -1;
     }
     
     processes_file  = fopen( PROCESSES_LOG_NAME, "w+" );
