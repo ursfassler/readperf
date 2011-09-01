@@ -79,7 +79,7 @@ int main( int argc, char **argv ) {
     func_print_detailed( res );
     fclose( res );
     
-//    func_print_overview( stdout );    // print an overview to stdout
+    func_print_overview( stdout );    // print an overview to stdout
     
     return 0;
 }
