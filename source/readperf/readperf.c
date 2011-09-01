@@ -62,8 +62,6 @@ int main( int argc, char **argv ) {
       return -1;
     }
     
-    return 0;  //TODO: remove
-    
     processes_file  = fopen( PROCESSES_LOG_NAME, "w+" );
     print_process_init( processes_file );
     overview_file = fopen( OVERVIEW_LOG_NAME, "w+" );
