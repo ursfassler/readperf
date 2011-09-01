@@ -34,6 +34,8 @@
 \usetheme{Madrid}
 \beamertemplatenavigationsymbolsempty
 
+\input{res/tikzstyle}
+
 \begin{document}
 \begin{frame}[plain]
   \titlepage
@@ -46,27 +48,41 @@
 \begin{itemize}
   \item processors does not get faster
   \item more into parallel computing
+  \item software has to be improved
+\pause
   \item performance monitoring to find bottlenecks
+  \item performance monitoring system of Linux is perf
   \item understanding monitoring system $\rightarrow$ extract relevant information
 \end{itemize}
 \end{frame}
 
 \section{Process}
-\begin{frame}{Process}
+\begin{frame}{Process (1)}
 \begin{itemize}
-  \item sparse only resources
+  \item sparse online resources
   \item perf report reads the data file
+\pause
   \begin{itemize}
     \item stepping through code with debugger
     \item static analyze code
     \item analyzing data structures
-    \item[$\Rightarrow$] Pitfall: overseen data
+\pause
+    \item[$\Rightarrow$] Pitfall: overseen data structures
   \end{itemize}
+\end{itemize}
+\begin{center}
+  \input{res/perfFileData}
+\end{center}
+\end{frame}
+
+\begin{frame}{Process (2)}
+\begin{itemize}
   \item analyzing code / structures $\rightarrow$ thinking $\rightarrow$ idea $\rightarrow$ verifying
   \begin{itemize}
     \item write code to see if it works
     \item compare it with perf report
   \end{itemize}
+\pause
   \item Andrzej /$\rightarrow$ contact to other people
 \end{itemize}
 \end{frame}
@@ -75,13 +91,17 @@
 \begin{frame}{Achievements}
 \begin{itemize}
   \item good understanding of perf data format
+\pause
   \item ''proof of concept'' application (readperf), verified against perf report
   \begin{itemize}
     \item only 1k lines of code (perf 34k)
     \item no kernel code / dependencies
     \item small dependencies
   \end{itemize}
-  \item report as description of file format and readperf
+\pause
+  \item report\only<handout>{\cite{Faessler2011}} as description of file format and readperf
+\pause
+  \item[$\Rightarrow$] basis for performance analysis
 \end{itemize}
 \end{frame}
 
@@ -92,9 +112,10 @@
   \begin{itemize}
     \item[$\Rightarrow$] complex, difficult to understand
   \end{itemize}
+\pause
   \item Open Source is good, still need time to understand the code
   \begin{itemize}
-    \item without code it would be much harder
+    \item[$\Rightarrow$] but without code it would be much harder
   \end{itemize}
 \end{itemize}
 \end{frame}
