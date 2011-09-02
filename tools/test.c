@@ -1,3 +1,9 @@
+/**
+ * @file
+ * Just some functions needing some CPU time. Can be used to be measured with
+ * perf.
+ */
+
 #include  <stdio.h>
 #include  <stdlib.h>
 

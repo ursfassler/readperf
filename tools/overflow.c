@@ -1,3 +1,9 @@
+/**
+ * @file
+ * Starts as many threads as possible and kills them afterwards.
+ * Can be used to stress the system and force an overflow of pid.
+ */
+
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <unistd.h>

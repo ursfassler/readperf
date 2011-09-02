@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Reads the tsc (time stamp counter) with two different ways.
+ */
+
 #include  <stdio.h>
 #include  "cycle.h"
 

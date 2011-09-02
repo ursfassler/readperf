@@ -1,6 +1,6 @@
 /**
  * @file
- * Routines for perf file reading.
+ * Initializing and reading of content of the perf file.
  */
 
 #ifndef _SESSION_H

@@ -1,8 +1,7 @@
 /*
- * File:   addr2line.h
- * Author: urs
- *
- * Created on August 25, 2011, 9:51 AM
+ * @file
+ * Function to translate an address of an binary file to the corresponding
+ * source file name and source function name.
  */
 
 #ifndef _ADDR2LINE_H

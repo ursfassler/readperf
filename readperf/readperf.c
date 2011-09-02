@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Main file, handling of input and output, starting the process.
+ */
 #include    <stdio.h>
 #include    <linux/types.h>
 #include    <linux/perf_event.h>

@@ -1,6 +1,7 @@
 /**
  * @file
- * Stores the different records sorted by timestamp.
+ * Data types and functions to store and iterate the records sorted by the
+ * timestamp.
  */
 
 #ifndef _RECORDS_H

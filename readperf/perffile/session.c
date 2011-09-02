@@ -56,6 +56,21 @@ static bool add_link( u64 id, struct event_type_entry *entry ){
     return true;
 };
 
+/**
+ * To read the attributes into memory we first have to get the number of 
+ * attribute instances of the structure @link perf_file_attr @endlink. To 
+ * achieve this, .attrs.size is divided by the size of the containing structure
+ * @link perf_file_attr @endlink. Then we can read the array of instances from 
+ * the file offset .attrs.offset. For every instance we have to read the 
+ * corresponding IDs. As for the whole structure, there can be several ID's. 
+ * .ids.size is used to determine the number of IDs. If only one event source 
+ * was used, there is no ID entry since all records belong to the single one 
+ * @link perf_file_attr @endlink instance.
+ *
+ * We check that .attr.sample_id_all is set for all instances. This ensures that
+ * all records have an timestamp and an identification entry. All instances are
+ * checked that they have the same value for .attr.sample\_type.
+ */
 static bool readAttr() {
     struct perf_file_attr f_attr;
     
@@ -118,6 +133,14 @@ static bool readAttr() {
     return true;
 }
 
+/**
+ * There can also be several instances of the @link perf_trace_event_type
+ * @endlink in the file. As before, the .event_types.size is used to determine
+ * the number of instances. By comparing .config of the @link perf_file_attr
+ * @endlink instances with .event_id of the @link perf_trace_event_type @endlink
+ * instances the corresponding pairs are searched. .name from the latter is 
+ * assigned to the @link perf_file_attr @endlink instance.
+ */
 static bool readTypes() {
     unsigned int traceInfoCount = 0;
     struct perf_trace_event_type *traceInfo = NULL;
@@ -183,6 +206,13 @@ bool skip_event_data( struct perf_event_header* header ){
     return true;
 };
 
+/**
+ * Reads the perf file header.
+ * Testing .magic for the content "PERFFILE" to ensure that we are really 
+ * reading a perf file. Comparing the .attr_size with the size of the structure
+ * @link perf_file_attr @endlink gives information whether the values 
+ * have to be swapped. For readperf, we assume this is not the case.
+ */
 bool start_session( int fd ){
     i_fd = fd;
     try( readn( i_fd, &fheader, sizeof(fheader) ) );

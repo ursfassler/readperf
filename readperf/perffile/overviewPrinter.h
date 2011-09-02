@@ -1,8 +1,6 @@
 /*
- * File:   overviewPrinter.h
- * Author: urs
- *
- * Created on August 24, 2011, 10:15 AM
+ * @file
+ * Functions to log records to an file.
  */
 
 #ifndef _OVERVIEWPRINTER_H

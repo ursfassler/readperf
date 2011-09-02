@@ -49,6 +49,10 @@ int exec_redirect( const char *path, char *const args[], int new_in, int new_out
     return 1;
 }
 
+/**
+ * Returns an source file name and function name to an instruction pointer / 
+ * binary name pair. At the moment, it uses the GNU Binutils tool addr2line.
+ */
 bool get_func( u64 addr, char *bin_name, char **source_file, char **source_func ){
     char *app = "/usr/bin/addr2line";
     char addrstr[128];

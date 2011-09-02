@@ -1,6 +1,7 @@
 /**
  * @file
- * Stores processes and related information like memory maps.
+ * Handles a data structure of processes sorted by pid, also contains related
+ * information like memory maps.
  */
 
 #ifndef _PROCESSES_H

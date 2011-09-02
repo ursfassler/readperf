@@ -1,8 +1,7 @@
 /*
- * File:   perffile.h
- * Author: urs
- *
- * Created on August 12, 2011, 3:11 PM
+ * @file
+ * Reads the content of the file and adds the records to its internal data
+ * structure.
  */
 
 #ifndef _PERFFILE_H

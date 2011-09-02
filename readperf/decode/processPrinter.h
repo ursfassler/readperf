@@ -1,6 +1,6 @@
 /**
  * @file
- * Routines to print content of @link processes.h @endlink
+ * Functions to print content of @link processes.h @endlink.
  */
 
 #ifndef _PROCESSPRINTER_H

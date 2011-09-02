@@ -1,3 +1,9 @@
+/**
+ * @file
+ * Produces the desired number of forks / processes.
+ * Can be used to stress the system and force an overflow of pid.
+ */
+
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <unistd.h>

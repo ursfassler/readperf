@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Definition of several used data types.
+ */
+
 #ifndef __TYPES_H__
 #define __TYPES_H__
 

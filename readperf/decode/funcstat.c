@@ -29,6 +29,10 @@ void func_print_overview( FILE* fid ){
     
 }
 
+/**
+ * This function prints a list of function names together with the source file
+ * name, sample count and period.
+ */
 void func_print_detailed( FILE* fid ){
     fprintf( fid, "period,samples,filename,function\n" );
     fprintf( fid, "%llu,%llu,\"%s\",\"%s\"\n", error.period, error.samples, error.source_file, error.source_func );
@@ -85,6 +89,14 @@ static struct func_dir* add_entry(){
     return head;
 };
 
+/**
+ * Returns an entry which identifies a source function together with the source
+ * file and additional information like the sample count and period. First, it
+ * searches for an entry with this binary name and instruction pointer. If not
+ * found, it retrieves the source file name and source function name and 
+ * searches for an entry with that. If this also does not leads to an valid 
+ * entry, a new one is created.
+ */
 struct func_dir* force_entry( u64 addr, char *bin_name ){
     struct func_dir *entry = NULL;
     entry = find_entry_addr( addr, bin_name );

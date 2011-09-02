@@ -1,8 +1,7 @@
 /*
- * File:   buildstat.h
- * Author: urs
- *
- * Created on August 24, 2011, 10:04 AM
+ * @file
+ * Iterate through the record data structure and build process data structure, 
+ * update period and sample count of source functions.
  */
 
 #ifndef _BUILDSTAT_H

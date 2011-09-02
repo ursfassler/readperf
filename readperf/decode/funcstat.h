@@ -1,8 +1,7 @@
 /*
- * File:   funcstat.h
- * Author: urs
- *
- * Created on August 2, 2011, 9:44 AM
+ * @file
+ * Stores source file name and function as well as the corresponding number of
+ * samples and period assigned to this function.
  */
 
 #ifndef _FUNCSTAT_H

@@ -1,3 +1,8 @@
+/**
+ * @file
+ * Implementation of an AVL tree, used for several structures.
+ */
+
 /* tree.h -- AVL trees (in the spirit of BSD's 'queue.h')	-*- C -*-	*/
 
 /* Copyright (c) 2005 Ian Piumarta

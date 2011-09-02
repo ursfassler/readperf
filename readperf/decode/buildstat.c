@@ -8,7 +8,20 @@
 
 static process_tree_t recTree;
 
-
+/**
+ * A new sample has been produced. The corresponding process is searched for, if
+ * not found, we assume it belongs to a common process with the pid ffffffff. 
+ * The number of samples of this process is increased by one and the period of 
+ * the record is added to the period of the process.
+ *
+ * In addition, the application or library where the .ip of the sample points to
+ * is searched within the mmap entries of the process. If it is a library we 
+ * subtract the start address of the library from the instruction pointer to get
+ * the address. For an application, we just use the instruction pointer. This 
+ * address together with the binary name is used to search for or create the 
+ * source function name where this event occurred.
+ * As for the process, the sample count and period of the function is updated.
+ */
 static bool decodeSample( struct record_sample *evt ) {
     log_overview_ii( evt->header.nr, PERF_RECORD_SAMPLE, evt->header.pid, evt->header.tid, evt->header.time, evt->ip, evt->period );
     
@@ -60,6 +73,15 @@ static bool decodeSample( struct record_sample *evt ) {
     return true;
 }
 
+/**
+ * A library module was loaded. As for "COMM" records, it is possible that a 
+ * process does not yet exist. For that case we create one as in the function 
+ * @link decodeComm @endlink.
+ * The information of the record is added to the process. If the .filename is
+ * "[vdso]" we assume that this record contains the begin of the address space 
+ * of the libraries. In this case, the .pgoff information is stored as .vdso 
+ * for the process.
+ */
 static bool decodeMmap( struct record_mmap *evt ) {
     log_overview_siii( evt->header.nr, PERF_RECORD_MMAP, evt->header.pid, evt->header.tid, evt->header.time, evt->filename, evt->start, evt->len, evt->pgoff );
     
@@ -87,6 +109,13 @@ static bool decodeMmap( struct record_mmap *evt ) {
     return true;
 }
 
+/**
+ * Provides the application name for an process. If the corresponding process is
+ * not found we assume that it was not yet created. This is the case for 
+ * processes running at the time perf record was started. If so, we expect the 
+ * timestamp to be zero and create the process. The name, provided by the 
+ * record, is assigned to the process.
+ */
 static bool decodeComm( struct record_comm* evt ) {
     log_overview_s( evt->header.nr, PERF_RECORD_COMM, evt->header.pid, evt->header.tid, evt->header.time, evt->comm );
     
@@ -102,6 +131,15 @@ static bool decodeComm( struct record_comm* evt ) {
     return true;
 }
 
+/**
+ * A new process or thread is created. We check if we already have a process 
+ * with this pid stored. If yes and the fork created a new process we throw an 
+ * error because we cannot have two running processes with the same pid. If no 
+ * process is found and the fork created a thread we also throw an error, since 
+ * a thread cannot be created without a corresponding process. 
+ * If a new process is created by the fork, we also create a new process in 
+ * memory and assign the corresponding pid and timestamp.
+ */
 static bool decodeFork( struct record_fork *evt ) {
     log_overview_i( evt->header.nr, PERF_RECORD_FORK, evt->header.pid, evt->header.tid, evt->header.time, evt->ppid );
     
@@ -121,6 +159,10 @@ static bool decodeFork( struct record_fork *evt ) {
     return true;
 }
 
+/**
+ * A process or thread is terminated. If it was a process, it is removed from 
+ * the internal list of processed and the information is written to a file.
+ */
 static bool decodeExit( struct record_fork *evt ) {
     log_overview( evt->header.nr, PERF_RECORD_EXIT, evt->header.pid, evt->header.tid, evt->header.time );
     
@@ -174,6 +216,13 @@ static void handleRecord(struct record_t *proc, void *data){
     };
 };
 
+/**
+ * Since all records are now sorted in the memory, we can process them. For 
+ * every record, the corresponding callback function is called. Two new data 
+ * structures are kept in memory: one to keep track of the actual processes 
+ * together with memory maps of it and used libraries, and the other to gather 
+ * the period and sample number for each source function.
+ */
 bool buildstat( record_order_tree_t *tree ){
     recTree = init_processes();
     iterate_order( tree, handleRecord, NULL );

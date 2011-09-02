@@ -56,6 +56,14 @@ static struct record_t* create_sample_msg( struct perf_sample *evt ){
     return &rec->header;
 };
 
+/**
+ * After the file header is read, the records can be read. We iterate through
+ * all records in the file. The ID, timestamp and more are decoded for every
+ * record by the function @link perf_event__parse_sample @endlink. Specific
+ * information for the different types of the record are also decoded and 
+ * written to a new record. This new record is then stored, sorted by the 
+ * timestamp.
+ */
 static bool readEvents() {
     u64 ev_nr = 0;
     while( has_more_events() ){
