@@ -1,0 +1,42 @@
+\begin{tikzpicture}[scale=1,transform shape]
+\begin{scope}[xshift=0cm,yshift=0cm]
+  \node [struct,minimum width=3 cm] at (0,0) (){\hyperref[tab:struct:perfFileHeader]{perf\_file\_header}};
+  \node [entry] at (-1,-2) (eventTypes){event\_types};
+  \node [entry] at ( 0,-2) (attr){attrs};
+  \node [entry] at ( 1,-2) (data){data};
+\end{scope}
+
+\begin{scope}[xshift=-5cm,yshift=-6cm]
+% this is a bit ugly, but there seems no other way to break the line
+  \node [struct,minimum width=2 cm] at (-0.5,0) (eventTypesDecl){\hyperref[tab:struct:perfTraceEventType]{perf\_trace\_}\\\hyperref[tab:struct:perfTraceEventType]{event\_type}};
+  \node [entry] at (-1,-2) (){name};
+  \node [entry] at ( 0,-2) (eventId){event\_id};
+  \node [entry,minimum width=4 cm] at ( 1,-1.5) (){\ldots};
+\end{scope}
+
+\begin{scope}[xshift=0cm,yshift=-6cm]
+  \node [struct,minimum width=4 cm] at (-0.5,0) (attrDecl){\hyperref[tab:struct:perfFileAttr]{perf\_file\_attr}};
+  \node [struct,minimum width=3 cm] at (-1,-1) (){\hyperref[tab:struct:perfEventAttr]{perf\_event\_attr}};
+  \node [entry] at (-2.0,-3) (config){config};
+  \node [entry] at (-1.0,-3) (){sample\_type};
+  \node [entry] at ( 0.0,-3) (){sample\_id\_all};
+  \node [entry,minimum width=4 cm] at ( 1.0,-2.5) (ids){ids};
+  \node [entry,minimum width=5 cm] at ( 2,-2) (){\ldots};
+\end{scope}
+
+\begin{scope}[xshift=5.5cm,yshift=-5cm]
+  \node [struct,minimum width=2 cm] at (-1,-1) (dataDecl){\hyperref[sec:data]{record}};
+  \node [entry,minimum width=1 cm] at ( .5,-1) (){\ldots};
+\end{scope}
+
+\begin{scope}[xshift=1cm,yshift=-12cm]
+  \node [entry] at (-0.5,-1) (idDecl){id};
+  \node [entry] at ( 0.5,-1) (){\ldots};
+\end{scope}
+
+\path [pointer] (eventTypes.west) edge (eventTypesDecl.north);
+\path [pointer] (attr.west) edge (attrDecl.north);
+\path [pointer] (data.west) edge (dataDecl.north);
+\path [pointer] (ids.west) edge (idDecl.east);
+\path [connection,bend right=70] (eventId.west) edge (config.west);
+\end{tikzpicture}

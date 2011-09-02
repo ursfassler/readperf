@@ -1,0 +1,21 @@
+\subsection{Source code}
+It is written in C and has a Makefile\index{Makefile} for compiling it. In addition, there are some Doxygen\index{Doxygen} comments in the files. It consists of several source files, the responsibilities is described in the following list:
+{
+  \newcommand{\resp}[2]{\item[\file{#1}] #2}
+  \begin{description}
+    \resp{readperf.c}{main file, handling of input and output, starting the process}
+    \resp{util/tree.h}{implementation of an AVL tree\index{AVL tree}, used for several structures}
+    \resp{util/types.h}{definition of several used data types}
+    \resp{util/errhandler.c}{routines and data types for error handling}
+    \resp{util/origperf.c}{definition of data types and functions from the original perf source}
+    \resp{perffile/session.c}{initializing and reading of content of the perf file}
+    \resp{perffile/overviewPrinter.c}{functions to log records to an file}
+    \resp{perffile/records.c}{data types and functions to store and iterate the records sorted by the timestamp}
+    \resp{perffile/perffile.c}{reads the content of the file and adds the records to its internal data structure}
+    \resp{decode/processes.c}{handles a data structure of processes sorted by pid, also contains related information like memory maps}
+    \resp{decode/processPrinter.c}{functions to print content of \file{perffile/processes.c}}
+    \resp{decode/addr2line.c}{function to translate an address of an binary file to the corresponding source file name and source function name}
+    \resp{decode/funcstat.c}{stores source file name and function as well as the corresponding number of samples and period assigned to this function}
+    \resp{decode/buildstat.c}{iterate through the record data structure and build process data structure, update period and sample count of source functions}
+  \end{description}
+}

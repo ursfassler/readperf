@@ -1,0 +1,38 @@
+%
+%    redefines the \maketitle command to the CERN openlab report style
+%    by Urs Fässler
+%
+
+\newcommand{\supervisor}[1]{\def\@supervisor{#1}}
+\makeatletter
+\def\maketitle{
+  {
+  \null
+  \thispagestyle{empty}
+  \definecolor{openlab}{rgb}{0.12,0.29,0.49}
+  \setlength{\oddsidemargin}{-2mm}
+  \begin{flushleft}
+    \vspace*{3cm}
+%    \parindent0pt 
+    \begin{tabular}{p{7cm}p{8cm}}
+      \begin{flushright}
+        \includegraphics[width=4.5cm]{openlab_logo}
+      \end{flushright}
+      & \vspace*{1cm}\Huge\bfseries\textsf\@title\\ 
+      & \vspace*{1cm}\\
+      & \Large Student:\\
+      & \huge\textsf\@author\\
+      & \\
+      & \Large Supervisor:\\
+      & \huge\textsf\@supervisor\\
+      & \vspace*{5mm} \\
+      & \textcolor{openlab}{\huge\textsf{CERN openlab}}\\
+      & \huge\textsf\@date\\
+    \end{tabular} 
+  \end{flushleft}
+  \vfill
+  \null
+  \cleardoublepage
+  }
+  }
+\makeatother

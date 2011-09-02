@@ -1,0 +1,91 @@
+\documentclass[
+%  draft,
+  10pt,
+  a4paper,
+%  parskip,
+  titlepage,
+%  twocolumn,
+%  twoside,
+%  openright,
+%  listof=totocnumbered,
+%  bibliography=totocnumbered,				% Literaturverzeichnis im Inhaltsverzeichnis aufführen und nummerieren
+%  liststotoc,				% Verzeichnisse im Inhaltsverzeichnis aufführen
+%  idxtotoc				% Index im Inhaltsverzeichnis aufführen
+]{scrartcl}
+%]{report}
+%]{scrbook}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage{biblatex}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[svgnames]{xcolor}
+\usepackage{tikz}
+\usepackage[breaklinks]{hyperref}
+\usepackage[all]{hypcap}        % jump to the start of table/figure instead to the caption of it (fix for hyperref)
+%\usepackage{url}
+\usepackage{placeins}           % for \FloatBarrier
+\usetikzlibrary{arrows,positioning,shapes} 
+\usepackage{cernopenlab}
+\usepackage{textcomp} % for \textgreater and \textless
+
+\author{Urs Fässler}
+\supervisor{Andrzej Nowak}
+\title{perf file format}
+\date{September 2, 2011}
+
+\makeatletter
+\AtBeginDocument{\markboth{\@author}{\@title}}   % gives access to those variables through \@author
+
+\hypersetup
+{
+  pdftitle={\@title},
+  pdfauthor={\@author},
+  pdfsubject={understanding the file format of the Linux performance measurement tool perf}
+}
+
+% wegen den Schusterjungen und Hurenkinder
+\clubpenalty=10000
+\widowpenalty=10000\displaywidowpenalty=10000 
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\console}[1]{\fbox{\texttt{#1}}}
+\newcommand{\file}[1]{\textsl{#1}}
+
+\newcommand{\anmerkung}[1]{\marginpar{\color{red}\footnotesize{#1}}}
+\newcommand{\todo}[1]{{\color{red}#1\index{todo!#1}}\anmerkung{{\color{red} todo}}}
+
+\input{res/tikzstyle}
+
+\newcommand{\headentry}[3]
+{
+  #1 & #2 & #3 \\ 
+}
+
+\setcounter{tocdepth}{2}
+\bibliography{literature}
+
+\begin{document}
+\maketitle
+
+\include{abstract}
+
+\tableofcontents
+
+\include{introduction}
+\include{perf}
+\include{fileFormat/fileFormat}
+\include{readperf/readperf}
+\include{conclusion}
+\include{further}
+
+\listoffigures
+\listoftables
+\printbibliography
+
+\appendix
+
+\end{document}

@@ -1,0 +1,29 @@
+\begin{tikzpicture}[scale=1,transform shape]
+\begin{scope}[xshift=0cm,yshift=0cm]
+  \node [funcfile] at (0,0) (main){\code{main}\\\file{readperf.c}};
+\end{scope}
+
+\begin{scope}[xshift=4cm,yshift=0cm]
+  \node [funcfile] at (0,2) (readPerfFile){\code{read\_perf\_file}\\\file{perffile.c}};
+  \node [funcfile] at (0,0) (buildstat){\code{buildstat}\\\file{buildstat.c}};
+  \node [funcfile] at (0,-2) (funcPrintDetailed){\code{func\_print\_detailed}\\\file{funcstat.c}};
+\end{scope}
+
+\begin{scope}[xshift=10cm,yshift=0cm]
+  \node [funcfile] at (0,4) (session){\file{session.c}};
+  \node [funcfile] at (0,2) (records){\file{records.c}};
+  \node [funcfile] at (0,0) (process){\file{process.c}};
+  \node [funcfile] at (0,-2) (funcstat){\file{funcstat.c}};
+\end{scope}
+
+\path [call] (main) edge (readPerfFile.west);
+\path [call] (main) edge (buildstat.west);
+\path [call] (main) edge (funcPrintDetailed.west);
+
+\path [use] (readPerfFile) edge node[edgelabel]{functions} (session.west);
+\path [use] (readPerfFile) edge node[edgelabel]{write data} (records.west);
+\path [use] (buildstat) edge node[edgelabel]{read data} (records.west);
+\path [use] (buildstat) edge node[edgelabel]{data structures\\functions} (process.west);
+\path [use] (buildstat) edge node[edgelabel]{write data} (funcstat.west);
+\path [use] (funcPrintDetailed) edge node[edgelabel]{read data} (funcstat.west);
+\end{tikzpicture}

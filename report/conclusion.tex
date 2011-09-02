@@ -1,0 +1,6 @@
+\section{Conclusion}
+For Linux, perf is the default way to measure performance. Although a tool for reporting is provided, it may not cover all possible use cases. For this reason, one has to understand how the system works.
+
+In this report, an overview of performance monitoring and the Linux tool perf was given. The data file produced by this tool was inspected. All required data structures were analyzed and described.
+
+A tool called readperf was written to show how one can read the data file. It produces several output files. All of them are comma separated tables. One of them is a complete list of all records, sorted by the timestamp. The tool can also resolve the instruction pointer of the samples and through that assign the samples to a source code function. This is then the final, most processed output of readperf.

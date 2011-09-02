@@ -1,0 +1,56 @@
+%\newcommand{\funcdesc}[2]{\paragraph{#1 : #2}}
+\newcommand{\funcdesc}[2]{\subsubsection{#2 (#1)}}
+\subsection{Workflow}
+An broad overview of the workflow can be found in figure~\ref{fig:readperfWorkflow}. The following descriptions are executed in chronological order. It is a short description of the readperf source code.
+
+\begin{figure}[ht]
+  \centering
+  \input{res/readperfWorkflow}
+  \caption[Workflow of readperf]{Workflow of readperf. \code{main} calls the functions \code{read\_perf\_file}, \code{buildstat} and \code{func\_print\_detailed}. Those functions use data structures and functionality of further files, depict as dashed lines.\label{fig:readperfWorkflow}}
+\end{figure}
+
+\funcdesc{session.c}{start\_session}
+First of all, the perf file header (table \ref{tab:struct:perfFileHeader}) has to be read. This is done with the function \code{start\_session} of the file \file{session.c}. Testing \code{.magic} for the content ``PERFFILE'' ensures that we are really reading a perf file. Comparing the \code{.attr\_size} with the size of the structure \code{perf\_file\_attr} gives information whether the values have to be swapped. For readperf, we assume this is not the case.
+
+\funcdesc{session.c}{readAttr}
+To read the attributes into memory we first have to get the number of attribute instances of the structure \code{perf\_file\_attr} (table \ref{tab:struct:perfFileAttr}). To achieve this, \code{.attrs.size} is divided by the size of the containing structure \code{perf\_file\_attr}. Then we can read the array of instances from the file offset \code{.attrs.offset}. For every instance we have to read the corresponding IDs. As for the whole structure, there can be several ID's. \code{.ids.size} is used to determine the number of IDs. If only one event source was used, there is no ID entry since all records belong to the single one \code{perf\_file\_attr} instance.
+
+We check that \code{.attr.sample\_id\_all} is set for all instances. This ensures that all records have an timestamp and an identification entry. All instances are checked that they have the same value for \code{.attr.sample\_type}.
+
+\funcdesc{session.c}{readTypes}
+There can also be several instances of the \code{perf\_trace\_ev\-ent\_type} (table \ref{tab:struct:perfTraceEventType}) in the file. As before, the \code{.event\_types.size} is used to determine the number of instances. By comparing \code{.config} of the \code{perf\_file\_attr} instances with \code{.event\_id} of the \code{perf\_trace\_event\_type} instances the corresponding pairs are search\-ed. \code{.name} from the latter is assigned to the \code{perf\_file\_attr} instance.
+
+\funcdesc{perffile.c}{readEvents}
+After the file header is read, the records can be read. We iterate through all records in the file. The ID, timestamp and more are decoded for every record by the function \code{perf\_event\_\_parse\_sample}. Specific information for the different types of the record are also decoded and written to a new record. This new record is then stored, sorted by the timestamp.
+
+\funcdesc{buildstat.c}{buildstat}
+Since all records are now sorted in the memory, we can process them. For every record, the corresponding callback function is called. Two new data structures are kept in memory: one to keep track of the actual processes together with memory maps of it and used libraries, and the other to gather the period and sample number for each source function.
+
+\funcdesc{buildstat.c}{decodeFork}
+A new process or thread is created. We check if we already have a process with this pid stored. If yes and the fork created a new process we throw an error because we cannot have two running processes with the same pid. If no process is found and the fork created a thread we also throw an error, since a thread cannot be created without a corresponding process.
+If a new process is created by the fork, we also create a new process in memory and assign the corresponding pid and timestamp.
+
+\funcdesc{buildstat.c}{decodeExit}
+A process or thread is terminated. If it was a process, it is removed from the internal list of processed and the information is written to a file.
+
+\funcdesc{buildstat.c}{decodeComm}
+Provides the application name for an process. If the corresponding process is not found we assume that it was not yet created. This is the case for processes running at the time perf record was started. If so, we expect the timestamp to be zero and create the process. The name, provided by the record, is assigned to the process.
+
+\funcdesc{buildstat.c}{decodeMmap}
+A library module was loaded. As for ``COMM'' records, it is possible that a process does not yet exist. For that case we create one as in the function \code{decodeComm}.
+The information of the record is added to the process. If the \code{.filename} is \code{[vdso]} we assume that this record contains the begin of the address space of the libraries. In this case, the \code{.pgoff} information is stored as \code{.vdso} for the process.
+
+\funcdesc{buildstat.c}{decodeSample}
+A new sample has been produced. The corresponding process is searched for, if not found, we assume it belongs to a common process with the pid ffffffff. The number of samples of this process is increased by one and the period of the record is added to the period of the process.
+
+In addition, the application or library where the \code{.ip} of the sample points to is searched within the mmap entries of the process. If it is a library we subtract the start address of the library from the instruction pointer to get the address. For an application, we just use the instruction pointer. This address together with the binary name is used to search for or create the source function name where this event occurred.
+As for the process, the sample count and period of the function is updated.
+
+\funcdesc{funcstat.c}{force\_entry}
+Returns an entry which identifies a source function together with the source file and additional information like the sample count and period. First, it searches for an entry with this binary name and instruction pointer. If not found, it retrieves the source file name and source function name and searches for an entry with that. If this also does not leads to an valid entry, a new one is created.
+
+\funcdesc{addr2line.c}{get\_func}
+Returns an source file name and function name to an instruction pointer / binary name pair. At the moment, it uses the GNU Binutils tool addr2line.
+
+\funcdesc{funcstat.c}{func\_print\_detailed}
+This function prints a list of function names together with the source file name, sample count and period.

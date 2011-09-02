@@ -1,0 +1,136 @@
+\subsection{Header}
+The perf data file header as shown in table~\ref{tab:struct:perfFileHeader} is at the beginning of the file. The \code{perf\_file\_section} structure is described in table~\ref{tab:struct:perfFileSection}. Figure~\ref{pic:perfFileHeader} gives an overview of the connection between the structures and fields.
+
+\begin{figure}[ht]
+  \center
+  \input{res/perfFileHeader}
+  \caption[perf file header]{Perf file header. Not all fields of the structures are shown. Links through file offsets are drawn as arrows. Dots in the fields means that the structure can occur more than once. The number can be calculated with the size field and the structure size. Dotted lines means a logical connection between elements.\label{pic:perfFileHeader}}
+\end{figure}
+
+\begin{table}[ht]
+  \center
+  \begin{tabular}{|rlp{7.2cm}|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{u64} {magic}         {Magic number, has to be ``PERFFILE''.}
+    \headentry{u64} {size}          {Size of this header.}
+    \hline
+    \headentry{u64} {attr\_size}    {Size of one attribute section, if it does not match, the entries may need to be swapped. We assume that it matches.}
+    \hline
+    \headentry{\hyperref[tab:struct:perfFileSection]{perf\_file\_section}} {attrs}       {List of \code{perf\_file\_attr} entries, see table \ref{tab:struct:perfFileAttr}.}
+    \headentry{\hyperref[tab:struct:perfFileSection]{perf\_file\_section}} {data}        {See section \ref{sec:data}.}
+    \headentry{\hyperref[tab:struct:perfFileSection]{perf\_file\_section}} {event\_types}{List of \code{perf\_trace\_event\_type} entries, see table \ref{tab:struct:perfTraceEventType}.}
+    \hline
+    \headentry{u256}{features}      {Unknown bitfield.}
+    \hline
+  \end{tabular}
+  \caption[\code{perf\_file\_header}]{\code{perf\_file\_header} from \file{\textless perf source\textgreater /util/header.h}\label{tab:struct:perfFileHeader}}
+\end{table}
+
+\begin{table}[ht]
+  \center
+  \begin{tabular}{|rlp{8cm}|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{u64}{offset}{File offset of the section.}
+    \hline
+    \headentry{u64}{size}{Size of the section. If size is greater than the struct in the section, mostly this means that there are more than one structure of this type in that section.}
+    \hline
+  \end{tabular}
+  \caption[\code{perf\_file\_section}]{\code{perf\_file\_section} from \file{\textless perf source\textgreater /util/header.h}\label{tab:struct:perfFileSection}}
+\end{table}
+
+\begin{table}[ht]
+  \center
+  \begin{tabular}{|rlp{8cm}|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{u64}      {event\_id} {This entry belongs to the \code{perf\_event\_attr} entry where \code{.config} has the same value as this id. See table \ref{tab:struct:perfEventAttr}.}
+    \hline
+    \headentry{char[64]} {name}      {Name of the event source.}
+    \hline
+  \end{tabular}
+  \caption[\code{perf\_trace\_event\_type}]{\code{perf\_trace\_event\_type} from \file{\textless perf source\textgreater /util/event.h}\label{tab:struct:perfTraceEventType}}
+\end{table}
+
+\begin{table}[ht]
+  \center
+  \begin{tabular}{|rlp{8cm}|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{\hyperref[tab:struct:perfEventAttr]{perf\_event\_attr}}{attr}{see table \ref{tab:struct:perfEventAttr}}
+    \hline
+    \headentry{\hyperref[tab:struct:perfFileSection]{perf\_file\_section}}{ids}{list of u64 identifier for matching with \code{.id} of the perf sample, see table \ref{tab:struct:perfSample} and \ref{tab:idSample}}
+    \hline
+  \end{tabular}
+  \caption[\code{perf\_file\_attr}]{\code{perf\_file\_attr} from \file{\textless perf source\textgreater /util/header.c}\label{tab:struct:perfFileAttr}}
+\end{table}
+{
+\newcommand{\sourcedoc}[1]{``#1''}
+\begin{table}[ht]
+  \center
+  \begin{tabular}{|rlp{8cm}|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{u32}      {type} {\sourcedoc{Major type: hardware/software/tracepoint/etc.}}
+    \hline
+    \headentry{u32}      {size} {size of this structure}
+    \hline
+    \headentry{u64}      {config} {Link to \code{.event\_id} of \code{perf\_trace\_event\_type}. See table \ref{tab:struct:perfTraceEventType}.}
+    \hline
+    \headentry{u64}      {sample\_period} {number of events when a sample is generated if \code{.freq} is not set}
+    \headentry{}         {sample\_freq} {frequency for sampling if \code{.freq} is set}
+    \hline
+    \headentry{u64}      {sample\_type} {gives information about what is stored in the sampling record (table \ref{tab:struct:perfSample})}
+    \hline
+    \headentry{u64}      {read\_format} {}
+    \hline
+    \headentry{u1}      {disabled} {\sourcedoc{off by default}}
+    \headentry{u1}      {inherit} {\sourcedoc{children inherit it}}
+    \headentry{u1}      {pinned} {\sourcedoc{must always be on PMU}}
+    \headentry{u1}      {exclusive} {\sourcedoc{only group on PMU}}
+    \headentry{u1}      {exclude\_user} {\sourcedoc{don't count user}}
+    \headentry{u1}      {exclude\_kernel} {\sourcedoc{ditto kernel}}
+    \headentry{u1}      {exclude\_hv} {\sourcedoc{ditto hypervisor}}
+    \headentry{u1}      {exclude\_idle} {\sourcedoc{don't count when idle}}
+    \headentry{u1}      {mmap} {``MMAP'' records are included in the file}
+    \headentry{u1}      {comm} {``COMM'' records are included in the file}
+    \headentry{u1}      {freq} {if set \code{sample\_freq} is valid otherwise \code{sample\_period}}
+    \headentry{u1}      {inherit\_stat} {\sourcedoc{per task counts}}
+    \headentry{u1}      {enable\_on\_exec} {\sourcedoc{next exec enables}}
+    \headentry{u1}      {task} {\sourcedoc{trace fork/exit}}
+    \headentry{u1}      {watermark} {\sourcedoc{wakeup\_watermark}}
+    \headentry{u2}      {precise\_ip} {\sourcedoc{0 - SAMPLE\_IP can have arbitrary skid}}
+    \headentry{}        {} {\sourcedoc{1 - SAMPLE\_IP must have constant skid}}
+    \headentry{}        {} {\sourcedoc{2 - SAMPLE\_IP can have arbitrary skid}}
+    \headentry{}        {} {\sourcedoc{3 - SAMPLE\_IP must have 0 skid}}
+    \headentry{}        {} {\sourcedoc{See also PERF\_RECORD\_MISC\_EXACT\_IP}}
+    \headentry{u1}      {mmap\_data} {\sourcedoc{non-exec mmap data}}
+    \headentry{u1}      {sample\_id\_all} {If set, the records as described in section \ref{sec:data} have additional information. We assume the bit is set.}
+    \headentry{u45}      {\_\_reserved\_1} {}
+    \hline
+    \headentry{u32}      {wakeup\_events} {\sourcedoc{wakeup every n events}}
+    \headentry{}         {wakeup\_watermark} {\sourcedoc{bytes before wakeup}}
+    \hline
+    \headentry{u32}      {bp\_type} {}
+    \hline
+    \headentry{u64}      {bp\_addr} {}
+    \headentry{}         {config1} {\sourcedoc{extension of config}}
+    \hline
+    \headentry{u64}      {bp\_len} {}
+    \headentry{}         {config2} {\sourcedoc{extension of config1}}
+    \hline
+  \end{tabular}
+  \caption[\code{perf\_event\_attr}]{\code{perf\_event\_attr} from \file{\textless system include directory\textgreater /linux/perf\_event.h}. The quoted text for descriptions is taken from the source code.\label{tab:struct:perfEventAttr}}
+\end{table}
+}

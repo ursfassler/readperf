@@ -1,0 +1,170 @@
+\subsection{Data\label{sec:data}}
+The data section consists of a stream of records\index{record}, figure~\ref{pic:perfFileData} gives an overview of the involved data structures.
+
+\begin{figure}[ht]
+  \center
+  \input{res/perfFileData}
+  \caption[perf file data]{Perf file data. Not all fields of the structures are shown. Links through file offsets are drawn as straight arrows. Dotted lines mean a logical connection between elements. The logical connection between the pid fields and also between the time fields are not shown. The dashed lines mean, that for every record the data is one of the depicted structures.\label{pic:perfFileData}}
+\end{figure}
+
+The data section of the sampling file contains the stream of records coming from the \code{perf\_events} interface (see also \cite{Eranian2010}). This happens in the function \code{mmap\_read} of the file \file{util/evlist.c}. Every record has the header as described in table~\ref{tab:struct:perfEventHeader}. With the size attribute in this structure, one knows the position of the next record.
+\begin{table}[ht]
+\center
+  \begin{tabular}{|rlp{8cm}|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{u32}{type}{value from enumerator \code{perf\_event\_type}:}
+    \headentry{}{}{\code{PERF\_RECORD\_MMAP}}
+    \headentry{}{}{\code{PERF\_RECORD\_COMM}}
+    \headentry{}{}{\code{PERF\_RECORD\_EXIT}}
+    \headentry{}{}{\code{PERF\_RECORD\_FORK}}
+    \headentry{}{}{\code{PERF\_RECORD\_SAMPLE}}
+    \hline
+    \headentry{u8}{misc:0-7}{one of the values:}
+    \headentry{}{}{\code{PERF\_RECORD\_MISC\_CPUMODE\_MASK}}
+    \headentry{}{}{\code{PERF\_RECORD\_MISC\_CPUMODE\_UNKNOWN}}
+    \headentry{}{}{\code{PERF\_RECORD\_MISC\_KERNEL}}
+    \headentry{}{}{\code{PERF\_RECORD\_MISC\_USER}}
+    \headentry{}{}{\code{PERF\_RECORD\_MISC\_HYPERVISOR}}
+    \headentry{}{}{\code{PERF\_RECORD\_MISC\_GUEST\_KERNEL}}
+    \headentry{}{}{\code{PERF\_RECORD\_MISC\_GUEST\_USER}}
+    \headentry{u6}{misc:8-13}{unused}
+    \headentry{u1}{misc:14}{\code{PERF\_RECORD\_MISC\_EXACT\_IP}, ``Indicates that the content of PERF\_SAMPLE\_IP points to the actual instruction that triggered the event.''}
+    \headentry{u1}{misc:15}{\code{PERF\_RECORD\_MISC\_EXT\_RESERVED}, ``Reserve the last bit to indicate some extended misc field''}
+    \hline
+    \headentry{u16}{size}{size of this record (inclusive header)}
+    \hline
+  \end{tabular}
+\caption[\code{perf\_event\_header}]{\code{perf\_event\_header} from \file{\textless system include directory\textgreater /linux/perf\_event.h}.\label{tab:struct:perfEventHeader}}
+\end{table}
+
+For \code{PERF\_RECORD\_COMM}\index{comm record}\index{record!comm} in \code{.type} of the record header, the structure \code{comm\_event} as in table~\ref{tab:struct:commEvent} is used. It contains the application name of a process. There should be one or zero comm records for one execution of an application.
+\begin{table}[ht]
+\center
+  \begin{tabular}{|rll|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{u32}{pid}{process id}
+    \headentry{u32}{tid}{thread id}
+    \hline
+    \headentry{char[16]}{comm}{name of the application}
+    \hline
+  \end{tabular}
+\caption[\code{comm\_event}]{\code{comm\_event} from \file{\textless perf source\textgreater /util/event.h}.\label{tab:struct:commEvent}}
+\end{table}
+
+For \code{PERF\_RECORD\_MMAP}\index{mmap record}\index{record!mmap} in \code{.type} of the record header, the structure \code{mmap\_event} as in table~\ref{tab:struct:mmapEvent} is used. It contains a used binary (application or library) of a process. With the \code{.start} and \code{.len} field one knows the memory location of the binary referenced in the field \code{.filename}. Together with the instruction pointer from the sample record (table \ref{tab:struct:perfSample}) the sample can be assigned to a binary.
+\begin{table}[ht]
+\center
+  \begin{tabular}{|rll|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{u32}{pid}{process id}
+    \headentry{u32}{tid}{thread id}
+    \hline
+    \headentry{u64}{start}{start of memory range}
+    \headentry{u64}{len}{size of memory range}
+    \headentry{u64}{pgoff}{}
+    \hline
+    \headentry{char[PATH\_MAX]}{filename}{binary file using this range}
+    \hline
+  \end{tabular}
+\caption[\code{mmap\_event}]{\code{mmap\_event} from \file{\textless perf source\textgreater /util/event.h}.\label{tab:struct:mmapEvent}}
+\end{table}
+
+For \code{PERF\_RECORD\_FORK}\index{fork record}\index{record!fork} or \code{PERF\_RECORD\_EXIT}\index{exit record}\index{record!exit} in \code{.type} of the record header, the structure \code{fork\_event} as in table~\ref{tab:struct:forkEvent} is used. A fork record shows that a new process or thread is created, a exit record shows that a process or thread was terminated.
+\begin{table}[ht]
+\center
+  \begin{tabular}{|rll|}
+    \hline
+    \headentry{type}{name}{description}
+    \hline
+    \hline
+    \headentry{u32}{pid}{process id}
+    \headentry{u32}{ppid}{parent process id}
+    \headentry{u32}{tid}{thread id}
+    \headentry{u32}{ptid}{parent thread id}
+    \hline
+    \headentry{u64}{time}{timestamp}
+    \hline
+  \end{tabular}
+\caption[\code{fork\_event}]{\code{fork\_event} from \file{\textless perf source\textgreater /util/event.h}.\label{tab:struct:forkEvent}}
+\end{table}
+
+For \code{PERF\_RECORD\_SAMPLE} in \code{.type} of the record header, the structure \code{perf\_sample} as in table~\ref{tab:struct:perfSample} is used. As it can be seen in the table, not all fields of the structure are stored in the file. The function \code{perf\_event\_\_parse\_sample} from \file{\textless perf source\textgreater /util/evsel.c} is used to decode the structure from the file stream. The type is taken from \code{perf\_event\_attr} \code{.sample\_type}. One can see that we need the type to decode the structure to get the id which is used to assign the sample to an \code{perf\_event\_attr} entry. But we don't have the type a priori because we don't know to which \code{perf\_event\_attr} entry the sample belongs. To overcome this problem, we assume that all \code{perf\_event\_attr} entries have the same value for \code{.sample\_type}.
+
+The sample record contains information about event counters. In the \code{.period} field, the number of events during the sampling time is stored. With the instruction pointer and process id the sample can be assigned to an binary file.
+%
+\newcommand{\perfsample}[4]{{#1}&{#2}&{#3}&{#4}\\}
+\begin{table}[ht]
+\center
+\begin{tabular}{|rlll|}
+  \hline
+  type & name & valid if flag in \code{.sample\_type} & description \\ 
+  \hline
+  \hline
+  \perfsample{u64}{ip}{PERF\_SAMPLE\_IP}{instruction pointer}
+  \hline
+  \perfsample{u32}{pid}{PERF\_SAMPLE\_TID}{process id}
+  \perfsample{u32}{tid}{}{thread id}
+  \hline
+  \perfsample{u64}{time}{PERF\_SAMPLE\_TIME}{timestamp}
+  \hline
+  \perfsample{u64}{addr}{PERF\_SAMPLE\_ADDR}{}
+  \hline
+  \perfsample{u64}{id}{PERF\_SAMPLE\_ID}{identification}
+  \hline
+  \perfsample{u64}{stream\_id}{PERF\_SAMPLE\_STREAM\_ID}{}
+  \hline
+  \perfsample{u32}{cpu}{PERF\_SAMPLE\_CPU}{used CPU}
+  \perfsample{u32}{res}{}{}
+  \hline
+  \perfsample{u64}{period}{PERF\_SAMPLE\_PERIOD}{nr. of events}
+  \hline
+  \perfsample{read\_format}{values}{PERF\_SAMPLE\_READ}{}
+  \hline
+  \perfsample{u64}{nr}{PERF\_SAMPLE\_CALLCHAIN}{}
+  \perfsample{u64}{ips[nr]}{}{}
+  \hline
+  \perfsample{u32}{size}{PERF\_SAMPLE\_RAW}{}
+  \perfsample{char}{data[size]}{}{}
+  \hline
+\end{tabular}
+\caption[\code{perf\_sample}]{\code{perf\_sample} from \file{\textless perf source\textgreater /util/event.h}. If a flag is set, then the fields are in the file stream. If not, one has to proceed with the next field.\label{tab:struct:perfSample}}
+\end{table}
+
+The \code{id\_sample} is not a real structure. It is used to add information to the mmap, comm and fork records. Since it is a subset of \code{perf\_sample}, the same structure is used. The valid fields are shown in table~\ref{tab:idSample}. The decoding is done by the function \code{perf\_event\_\_parse\_id\_sample} from \file{\textless perf source\textgreater /util/evsel.c}. The function is automatically called for the function \code{perf\_event\_\_parse\_sample} when the record is not from the type \code{PERF\_RECORD\_SAMPLE}.
+
+\begin{table}[b]
+\center
+\begin{tabular}{|rlll|}
+  \hline
+  type & name & valid if flag in \code{.sample\_type} & description \\ 
+  \hline
+  \hline
+  \perfsample{u32}{pid}{PERF\_SAMPLE\_TID}{process id}
+  \perfsample{u32}{tid}{}{thread id}
+  \hline
+  \perfsample{u64}{time}{PERF\_SAMPLE\_TIME}{timestamp}
+  \hline
+  \perfsample{u64}{addr}{}{}
+  \hline
+  \perfsample{u64}{id}{PERF\_SAMPLE\_ID}{identification}
+  \hline
+  \perfsample{u64}{stream\_id}{PERF\_SAMPLE\_STREAM\_ID}{}
+  \hline
+  \perfsample{u32}{cpu}{PERF\_SAMPLE\_CPU}{used CPU}
+  \perfsample{u32}{res}{}{}
+  \hline
+\end{tabular}
+\caption[id\_sample]{id\_sample\label{tab:idSample}}
+\end{table}
+
+It is not entirely clear what the \code{.timestamp} field in an sample contains. Experiments have shown that it may be the running time in nanoseconds of the computer (not uptime, as the counter did not run during hibernation). Information from Andrzej Nowak and involved people from Google suggest that the timestamp is calculated with the Kernel function \code{sched\_clock()}. Nevertheless the source of the timestamp is not clear, it was measured as a increasing series of numbers which can be used to sort the records.
+

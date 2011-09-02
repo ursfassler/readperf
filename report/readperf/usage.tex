@@ -1,0 +1,14 @@
+\subsection{Using readperf}
+The command line application to read the perf file is called readperf. It takes exactly one argument, the file name of the perf data file. If no error occurs, an overview of the functions and the percentage of the period is written to the console. After processing the data file, four comma separated files, as described in the following list, are produced.
+{
+  \newcommand{\resp}[2]{\item[\file{#1}] \index{#1}#2}
+  \begin{description}
+    \resp{stat.csv}{Lists how many records of the different types were found.}
+%
+    \resp{overview.csv}{Content of the data file as a table, sorted by the timestamp. The ``nr'' column contains the index of the record in the perf data file. The content of ``type'', ``pid'', ``tid'' and ``time'' is clear from the name. Depending of the type, info has a different meaning. For ``MMAP'', it contains the filename, address, size and offset (see table \ref{tab:struct:mmapEvent}). ``COMM'' has the application name as info (see table \ref{tab:struct:commEvent}). ``FORK'' contains the parent pid (see table \ref{tab:struct:forkEvent}) and ``EXIT'' has no information. Finally ``SAMPLE'' has the instruction pointer and period of the sample (see table \ref{tab:struct:perfSample}).}
+%
+    \resp{processes.csv}{Every line contains a process. It provides the name of the process, the number of ``MMAP'' entries, the fork and exit time, the number of samples and the accumulated period.}
+%    
+    \resp{results.csv}{This is the file with the most processed data. It contains the accumulated period and number of samples for all used functions as also the source file name of this function.}
+  \end{description}
+}
