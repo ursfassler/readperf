@@ -1,5 +1,5 @@
 \subsection{Data\label{sec:data}}
-The data section consists of a stream of records\index{record}, figure~\ref{pic:perfFileData} gives an overview of the involved data structures.
+The data section consists of a stream of records, figure~\ref{pic:perfFileData} gives an overview of the involved data structures.
 
 \begin{figure}[ht]
   \center
@@ -40,7 +40,7 @@ The data section of the sampling file contains the stream of records coming from
 \caption[\code{perf\_event\_header}]{\code{perf\_event\_header} from \file{\textless system include directory\textgreater /linux/perf\_event.h}.\label{tab:struct:perfEventHeader}}
 \end{table}
 
-For \code{PERF\_RECORD\_COMM}\index{comm record}\index{record!comm} in \code{.type} of the record header, the structure \code{comm\_event} as in table~\ref{tab:struct:commEvent} is used. It contains the application name of a process. There should be one or zero comm records for one execution of an application.
+For \code{PERF\_RECORD\_COMM} in \code{.type} of the record header, the structure \code{comm\_event} as in table~\ref{tab:struct:commEvent} is used. It contains the application name of a process. There should be one or zero comm records for one execution of an application.
 \begin{table}[ht]
 \center
   \begin{tabular}{|rll|}
@@ -57,7 +57,7 @@ For \code{PERF\_RECORD\_COMM}\index{comm record}\index{record!comm} in \code{.ty
 \caption[\code{comm\_event}]{\code{comm\_event} from \file{\textless perf source\textgreater /util/event.h}.\label{tab:struct:commEvent}}
 \end{table}
 
-For \code{PERF\_RECORD\_MMAP}\index{mmap record}\index{record!mmap} in \code{.type} of the record header, the structure \code{mmap\_event} as in table~\ref{tab:struct:mmapEvent} is used. It contains a used binary (application or library) of a process. With the \code{.start} and \code{.len} field one knows the memory location of the binary referenced in the field \code{.filename}. Together with the instruction pointer from the sample record (table \ref{tab:struct:perfSample}) the sample can be assigned to a binary.
+For \code{PERF\_RECORD\_MMAP} in \code{.type} of the record header, the structure \code{mmap\_event} as in table~\ref{tab:struct:mmapEvent} is used. It contains a used binary (application or library) of a process. With the \code{.start} and \code{.len} field one knows the memory location of the binary referenced in the field \code{.filename}. Together with the instruction pointer from the sample record (table \ref{tab:struct:perfSample}) the sample can be assigned to a binary.
 \begin{table}[ht]
 \center
   \begin{tabular}{|rll|}
@@ -78,7 +78,7 @@ For \code{PERF\_RECORD\_MMAP}\index{mmap record}\index{record!mmap} in \code{.ty
 \caption[\code{mmap\_event}]{\code{mmap\_event} from \file{\textless perf source\textgreater /util/event.h}.\label{tab:struct:mmapEvent}}
 \end{table}
 
-For \code{PERF\_RECORD\_FORK}\index{fork record}\index{record!fork} or \code{PERF\_RECORD\_EXIT}\index{exit record}\index{record!exit} in \code{.type} of the record header, the structure \code{fork\_event} as in table~\ref{tab:struct:forkEvent} is used. A fork record shows that a new process or thread is created, a exit record shows that a process or thread was terminated.
+For \code{PERF\_RECORD\_FORK} or \code{PERF\_RECORD\_EXIT} in \code{.type} of the record header, the structure \code{fork\_event} as in table~\ref{tab:struct:forkEvent} is used. A fork record shows that a new process or thread is created, a exit record shows that a process or thread was terminated.
 \begin{table}[ht]
 \center
   \begin{tabular}{|rll|}
