@@ -15,6 +15,7 @@ handout:
 	bibtex $(handname) 1> /dev/null
 	pdflatex -draftmode -halt-on-error $(handname).tex 1> /dev/null
 	pdflatex -halt-on-error $(handname).tex 1> /dev/null
+	mkdir -p $(outdir)
 	mv $(handname).pdf $(outdir)$(pdfprexif)$(handname).pdf
 
 slide:
@@ -22,6 +23,7 @@ slide:
 	bibtex $(slidename) 1> /dev/null
 	pdflatex -draftmode -halt-on-error $(slidename).tex 1> /dev/null
 	pdflatex -halt-on-error $(slidename).tex 1> /dev/null
+	mkdir -p $(outdir)
 	mv $(slidename).pdf $(outdir)$(pdfprexif)$(slidename).pdf
 
 pdfclean:

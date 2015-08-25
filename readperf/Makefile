@@ -8,6 +8,7 @@ readperf: readperf.o session.o errhandler.o funcstat.o processes.o records.o pro
 	$(CC) $^ -o $@
 
 doc:
+	mkdir -p ../generated/
 	doxygen
 
 readperf.o: readperf.c

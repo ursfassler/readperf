@@ -8,6 +8,7 @@ pdf:
 	bibtex $(texname)
 	pdflatex -draftmode -halt-on-error $(texname).tex 1> /dev/null
 	pdflatex -halt-on-error $(texname).tex 1> /dev/null
+	mkdir -p ../generated/
 	mv $(texname).pdf ../generated/$(outname).pdf
 	rm -f $(tmpfiles)
 	find ./ -iname "*.aux" -exec "rm" '{}' ';'
