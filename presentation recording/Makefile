@@ -25,7 +25,7 @@ slide:
 	mv $(slidename).pdf $(outdir)$(pdfprexif)$(slidename).pdf
 
 pdfclean:
-	rm -f $(bibname)-blx.bib $(slidename)-blx.bib $(handname)-blx.bib *.log *.toc *.aux *.bbl *.blg *.lof *.lot *.out *.bak *.nav *.snm *.xml *.vrb
+	rm -f $(bibname)-blx.bib $(slidename)-blx.bib $(handname)-blx.bib *.log *.toc *.aux *.bbl *.blg *.lof *.lot *.out *.bak *.nav *.snm *.xml *.vrb *.bcf
 
 png: ps
 	pstoimg -multi -type png -scale 2 -aaliastext -aaliastext $(handname).ps

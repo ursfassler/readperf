@@ -1,7 +1,7 @@
 
 texname=main
 outname=report
-tmpfiles=$(texname)-blx.bib *.log *.toc *.bbl *.blg *.lof *.lot *.out *.bak *.idx *.ilg *.ind *.lol *.xml
+tmpfiles=$(texname)-blx.bib *.log *.toc *.bbl *.blg *.lof *.lot *.out *.bak *.idx *.ilg *.ind *.lol *.xml *.bcf
 
 pdf:
 	pdflatex -draftmode -halt-on-error $(texname).tex 1> /dev/null
