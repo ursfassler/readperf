@@ -1,6 +1,9 @@
 /*
  * @file
  * Functions to log records to an file.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _OVERVIEWPRINTER_H

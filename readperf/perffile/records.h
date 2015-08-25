@@ -2,6 +2,9 @@
  * @file
  * Data types and functions to store and iterate the records sorted by the
  * timestamp.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _RECORDS_H

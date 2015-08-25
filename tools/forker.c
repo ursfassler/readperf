@@ -2,6 +2,9 @@
  * @file
  * Produces the desired number of forks / processes.
  * Can be used to stress the system and force an overflow of pid.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #include  <stdio.h>

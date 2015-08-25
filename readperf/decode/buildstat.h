@@ -2,6 +2,9 @@
  * @file
  * Iterate through the record data structure and build process data structure, 
  * update period and sample count of source functions.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _BUILDSTAT_H

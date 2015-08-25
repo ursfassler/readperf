@@ -1,6 +1,9 @@
 /**
  * @file
  * Functions to print content of @link processes.h @endlink.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _PROCESSPRINTER_H

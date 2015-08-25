@@ -2,6 +2,9 @@
  * @file
  * This file containes copies of types and functions of the original perf
  * source.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef __ORIGPERF_H__

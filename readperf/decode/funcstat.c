@@ -1,3 +1,7 @@
+/**
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
+ */
 #include    "funcstat.h"
 
 #include    <string.h>

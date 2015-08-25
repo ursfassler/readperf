@@ -1,6 +1,9 @@
 /**
  * @file
  * Initializing and reading of content of the perf file.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _SESSION_H

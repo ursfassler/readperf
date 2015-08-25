@@ -1,3 +1,7 @@
+/**
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
+ */
 #include    "records.h"
 #include    <stdlib.h>
 #include    <string.h>

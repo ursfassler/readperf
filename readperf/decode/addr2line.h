@@ -2,6 +2,9 @@
  * @file
  * Function to translate an address of an binary file to the corresponding
  * source file name and source function name.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _ADDR2LINE_H

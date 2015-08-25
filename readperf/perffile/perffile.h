@@ -2,6 +2,9 @@
  * @file
  * Reads the content of the file and adds the records to its internal data
  * structure.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _PERFFILE_H

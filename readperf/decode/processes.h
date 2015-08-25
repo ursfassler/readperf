@@ -2,6 +2,9 @@
  * @file
  * Handles a data structure of processes sorted by pid, also contains related
  * information like memory maps.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _PROCESSES_H

@@ -1,6 +1,9 @@
 /**
  * @file
  * Main file, handling of input and output, starting the process.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 #include    <stdio.h>
 #include    <linux/types.h>

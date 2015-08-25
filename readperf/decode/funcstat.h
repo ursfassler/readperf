@@ -2,6 +2,9 @@
  * @file
  * Stores source file name and function as well as the corresponding number of
  * samples and period assigned to this function.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef _FUNCSTAT_H

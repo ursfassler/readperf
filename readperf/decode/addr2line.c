@@ -1,4 +1,7 @@
-
+/**
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
+ */
 #include    "addr2line.h"
 #include    <unistd.h>
 #include    "../util/errhandler.h"

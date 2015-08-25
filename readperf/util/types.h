@@ -1,6 +1,9 @@
 /**
  * @file
  * Definition of several used data types.
+ *
+ * Copyright 2011 Urs Fässler, www.bitzgi.ch
+ * SPDX-License-Identifier:	GPL-3.0+
  */
 
 #ifndef __TYPES_H__
